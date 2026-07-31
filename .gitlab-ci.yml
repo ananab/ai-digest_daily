@@ -14,10 +14,10 @@ lint:
   script:
     - python -m py_compile src/main.py src/analyzer.py src/publisher.py src/processor.py src/config.py
     - find src/collectors -name "*.py" -exec python -m py_compile {} \;
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "master"
+  only:
+    - merge_requests
+    - master
+    - main
 
 digest:
   stage: run
@@ -32,8 +32,8 @@ digest:
     - pip install -r requirements.txt
   script:
     - python -m src.main
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"   # 定时触发
-    - if: $CI_PIPELINE_SOURCE == "web"         # UI 手动触发
-    - if: $CI_PIPELINE_SOURCE == "api"         # API 手动触发
-    - when: manual                             # 其他情况允许手动运行
+  only:
+    - schedules
+    - web
+    - api
+    - triggers
