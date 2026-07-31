@@ -1,6 +1,6 @@
 # GitLab CI: AI Daily Digest
 # 在 GitLab UI 配置定时触发: Settings > CI/CD > Pipeline schedules
-# 设置 cron: 0 22 * * * (UTC) = 北京时间 06:00
+# 设置 cron: 0 1 * * * (UTC) = 北京时间 09:00
 
 stages:
   - test

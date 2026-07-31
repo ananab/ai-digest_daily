@@ -40,7 +40,7 @@ python src/main.py
 
 ### GitHub Actions
 
-项目包含 `.github/workflows/daily-digest.yml`，每天北京时间 6:00 自动运行。
+项目包含 `.github/workflows/daily-digest.yml`，每天北京时间 9:00 自动运行。
 
 在仓库 Settings → Secrets → Actions 中添加：
 
@@ -52,7 +52,7 @@ python src/main.py
 项目包含 `.gitlab-ci.yml`。定时任务在 UI 配置：
 
 1. 进入项目 **Settings → CI/CD → Pipeline schedules**
-2. 点 **New schedule**，设置 cron: `0 22 * * *`（UTC），时区选 UTC
+2. 点 **New schedule**，设置 cron: `0 1 * * *`（UTC），时区选 UTC
 3. 添加两个 CI/CD Variables（Settings → CI/CD → Variables）：
    - `ANTHROPIC_API_KEY`（勾选 Masked）
    - `FEISHU_WEBHOOK_URL`（勾选 Masked）
