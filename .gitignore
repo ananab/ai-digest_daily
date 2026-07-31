@@ -1,4 +1,4 @@
-﻿# kdiff3 ignore
+# kdiff3 ignore
 *.orig
 
 # maven ignore
@@ -36,3 +36,13 @@ Thumbs.db
 
 # pods ignore
 Pods/
+
+# Python
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
