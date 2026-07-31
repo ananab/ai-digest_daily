@@ -158,9 +158,16 @@ class Analyzer:
         try:
             response = self.client.messages.create(
                 model=config.claude_model_report,
-                max_tokens=2000,
+                max_tokens=4000,
                 messages=[{'role': 'user', 'content': prompt}],
             )
+
+            if not response.content:
+                logger.error(f'生成报告失败: response.content 为空, response={response}')
+                return {
+                    'report': self._fallback_report(filtered_data),
+                    'data': filtered_data,
+                }
 
             report_text = response.content[0].text
 
