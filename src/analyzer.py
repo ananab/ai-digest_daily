@@ -347,22 +347,26 @@ class Analyzer:
     async def _kimi_web_search(self, domain: str) -> str:
         """使用 Kimi 联网搜索获取领域新闻"""
         import httpx
-        from datetime import date
+        from datetime import date, timedelta
 
-        today = date.today().strftime('%Y-%m-%d')
+        today = date.today()
+        last_monday = today - timedelta(days=today.weekday() + 7)  # 上周一
+        this_monday = today - timedelta(days=today.weekday())  # 本周一
+
+        time_range = f'{last_monday.strftime("%Y-%m-%d")}至{this_monday.strftime("%Y-%m-%d")}'
 
         domain_queries = {
-            'OTA与旅游AI': '2026年8月 OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',
-            '用户研究AI': '2026年8月 用户研究 UX Research social listening AI平台最新动态',
-            '客服AI': '2026年8月 客服AI customer service AI Cresta Decagon 智能客服最新动态',
-            'Startups': '2026年8月 AI创业公司 融资 产品发布 TechCrunch最新动态',
-            '模型发布/更新': '2026年8月 大语言模型 发布 GPT Claude Gemini Llama 开源模型',
-            '产品发布/更新': '2026年8月 AI产品 工具 应用 发布 更新 OpenAI Anthropic',
-            '行业动态': '2026年8月 AI行业 政策 合作 市场 收购 投资',
-            '论文研究': '2026年8月 AI论文 研究 arxiv 深度学习 机器学习',
-            '技巧与观点': '2026年8月 AI最佳实践 技巧 教程 观点 prompt engineering',
+            'OTA与旅游AI': f'{time_range} OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',
+            '用户研究AI': f'{time_range} 用户研究 UX Research social listening AI平台最新动态',
+            '客服AI': f'{time_range} 客服AI customer service AI Cresta Decagon 智能客服最新动态',
+            'Startups': f'{time_range} AI创业公司 融资 产品发布 TechCrunch最新动态',
+            '模型发布/更新': f'{time_range} 大语言模型 发布 GPT Claude Gemini Llama 开源模型',
+            '产品发布/更新': f'{time_range} AI产品 工具 应用 发布 更新 OpenAI Anthropic',
+            '行业动态': f'{time_range} AI行业 政策 合作 市场 收购 投资',
+            '论文研究': f'{time_range} AI论文 研究 arxiv 深度学习 机器学习',
+            '技巧与观点': f'{time_range} AI最佳实践 技巧 教程 观点 prompt engineering',
         }
-        query = domain_queries.get(domain, f'2026年8月 {domain} 最新动态')
+        query = domain_queries.get(domain, f'{time_range} {domain} 最新动态')
 
         try:
             async with httpx.AsyncClient(timeout=120) as client:
@@ -376,8 +380,8 @@ class Analyzer:
                         "model": config.kimi_model_report,
                         "max_tokens": 3000,
                         "messages": [
-                            {"role": "system", "content": f"你是一个科技新闻编辑。今天是{today}。请搜索并整理最近24-48小时内的相关新闻。每条新闻需包含标题、来源和URL链接。"},
-                            {"role": "user", "content": f"请搜索以下内容，返回最近1-2天的新闻（3-5条），格式：标题 - 来源 - URL\n\n{query}"}
+                            {"role": "system", "content": f"你是一个科技新闻编辑。今天是{today.strftime('%Y-%m-%d')}。请搜索并整理{time_range}期间的相关新闻。每条新闻需包含标题、来源和URL链接。"},
+                            {"role": "user", "content": f"请搜索以下内容，返回{time_range}期间的新闻（3-5条），格式：标题 - 来源 - URL\n\n{query}"}
                         ],
                         "tools": [
                             {
