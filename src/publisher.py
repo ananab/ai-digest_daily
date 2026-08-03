@@ -28,10 +28,18 @@ class FeishuPublisher:
         card = self._build_card(report)
 
         try:
+            # 记录请求内容大小
+            report_text = report.get('report', '')
+            logger.info(f'报告长度: {len(report_text)} 字符')
+
             response = await self.client.post(
                 self.webhook_url,
                 json=card,
             )
+
+            logger.info(f'飞书响应状态码: {response.status_code}')
+            logger.info(f'飞书响应内容: {response.text[:500]}')
+
             response.raise_for_status()
 
             result = response.json()
@@ -42,8 +50,13 @@ class FeishuPublisher:
                 logger.error(f'飞书推送失败: {result}')
                 return False
 
+        except httpx.HTTPStatusError as e:
+            logger.error(f'飞书HTTP错误: 状态码={e.response.status_code}, 响应={e.response.text[:500]}')
+            return False
         except Exception as e:
-            logger.error(f'飞书推送异常: {e}')
+            logger.error(f'飞书推送异常: {type(e).__name__}: {e}')
+            import traceback
+            logger.error(traceback.format_exc())
             return False
 
     def _build_card(self, report: dict) -> dict:
@@ -78,7 +91,7 @@ class FeishuPublisher:
                         "elements": [
                             {
                                 "tag": "plain_text",
-                                "content": "由 AI Daily Digest 自动生成 | Powered by Claude"
+                                "content": "由 AI Daily Digest 自动生成 | Powered by Kimi"
                             }
                         ]
                     }

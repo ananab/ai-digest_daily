@@ -35,9 +35,9 @@ git push -u origin main
 1. 左侧菜单：**Settings → CI/CD → Variables**
 2. 点击 **Add variable**
 
-### 变量 1: ANTHROPIC_API_KEY
-- **Key**: `ANTHROPIC_API_KEY`
-- **Value**: 你的 Claude API 密钥（从 https://console.anthropic.com 获取）
+### 变量 1: KIMI_API_KEY
+- **Key**: `KIMI_API_KEY`
+- **Value**: 你的 Kimi API 密钥（从 https://platform.moonshot.cn 获取）
 - **Type**: Variable
 - **Flags**: 
   - ✅ Protect variable（只在 protected 分支可用）

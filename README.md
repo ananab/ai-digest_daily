@@ -1,6 +1,6 @@
 # AI 前沿信息每日汇总 Agent
 
-自动化采集多源 AI 领域最新动态，通过 Claude API 智能分析，每日推送到飞书机器人。
+自动化采集多源 AI 领域最新动态，通过 Kimi (Moonshot AI) 智能分析，每日推送到飞书机器人。
 
 ## 数据源
 
@@ -24,7 +24,7 @@ pip install -r requirements.txt
 复制 `.env.example` 为 `.env`，填入以下配置：
 
 ```bash
-ANTHROPIC_API_KEY=your_anthropic_api_key
+KIMI_API_KEY=your_kimi_api_key
 FEISHU_WEBHOOK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/your_webhook_id
 ```
 
@@ -44,7 +44,7 @@ python src/main.py
 
 在仓库 Settings → Secrets → Actions 中添加：
 
-- `ANTHROPIC_API_KEY`
+- `KIMI_API_KEY`
 - `FEISHU_WEBHOOK_URL`
 
 ### GitLab CI
@@ -54,7 +54,7 @@ python src/main.py
 1. 进入项目 **Settings → CI/CD → Pipeline schedules**
 2. 点 **New schedule**，设置 cron: `0 1 * * *`（UTC），时区选 UTC
 3. 添加两个 CI/CD Variables（Settings → CI/CD → Variables）：
-   - `ANTHROPIC_API_KEY`（勾选 Masked）
+   - `KIMI_API_KEY`（勾选 Masked）
    - `FEISHU_WEBHOOK_URL`（勾选 Masked）
 4. 点 **Run pipeline** 立即测试一次
 
@@ -70,7 +70,7 @@ python src/main.py
 ## 费用
 
 - GitHub Actions: 公开仓库免费
-- Claude API: 每日约 $0.06，每月约 $1.8
+- Kimi API: 每日约 ¥0.1-0.3，每月约 ¥3-9（取决于模型和用量）
 
 ## 项目结构
 
@@ -82,7 +82,7 @@ ai-daily-digest/
 │   ├── main.py           # 主入口
 │   ├── config.py         # 配置管理
 │   ├── processor.py      # 数据处理器
-│   ├── analyzer.py       # Claude API 分析
+│   ├── analyzer.py       # Kimi API 分析
 │   └── publisher.py      # 飞书推送
 ├── requirements.txt
 └── README.md

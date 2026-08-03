@@ -94,7 +94,7 @@ class Processor:
             'news': [],
             'paper': [],
             'repo': [],
-            'discussion': [],
+            'startups': [],
         }
 
         for item in items:

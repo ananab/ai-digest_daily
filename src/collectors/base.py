@@ -15,7 +15,7 @@ class CollectedItem:
     summary: str = ''
     url: str = ''
     source: str = ''
-    category: Literal['news', 'paper', 'repo', 'discussion'] = 'news'
+    category: Literal['news', 'paper', 'repo', 'discussion', 'startups'] = 'news'
     metadata: dict = field(default_factory=dict)
 
 

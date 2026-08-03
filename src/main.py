@@ -8,8 +8,17 @@ from .collectors.aihot import AIHotCollector
 from .collectors.huggingface import HuggingFaceCollector
 from .collectors.arxiv import ArxivCollector
 from .collectors.github_trending import GitHubTrendingCollector
-from .collectors.hackernews import HackerNewsCollector
-from .collectors.reddit_ml import RedditMLCollector
+from .collectors.skift import SkiftCollector
+from .collectors.phocuswire import PhocusWireCollector
+from .collectors.huanqiu_travel import HuanqiuTravelCollector
+from .collectors.userweekly import UserWeeklyCollector
+from .collectors.dscout import DscoutCollector
+from .collectors.userinterviews import UserInterviewsCollector
+from .collectors.uxren import UxRenCollector
+from .collectors.cxtoday import CXTodayCollector
+from .collectors.cmswire import CMSWireCollector
+from .collectors.venturebeat_ai import VentureBeatAICollector
+from .collectors.startups import StartupsCollector
 from .processor import Processor
 from .analyzer import Analyzer
 from .publisher import FeishuPublisher
@@ -46,8 +55,22 @@ async def collect_all():
         HuggingFaceCollector(),
         ArxivCollector(),
         GitHubTrendingCollector(),
-        HackerNewsCollector(),
-        RedditMLCollector(),
+        # OTA/旅游
+        SkiftCollector(),
+        PhocusWireCollector(),
+        HuanqiuTravelCollector(),
+        # 用户研究
+        UserWeeklyCollector(),
+        DscoutCollector(),
+        UserInterviewsCollector(),
+        UxRenCollector(),
+        # 客服AI/CX
+        CXTodayCollector(),
+        CMSWireCollector(),
+        # AI新闻
+        VentureBeatAICollector(),
+        # Startups
+        StartupsCollector(),
     ]
 
     logger.info(f'开始采集，共 {len(collectors)} 个数据源...')
@@ -102,10 +125,10 @@ async def run():
 
     # 3. 分析
     logger.info('=' * 50)
-    logger.info('阶段 3: Claude API 智能分析')
+    logger.info('阶段 3: Kimi API 智能分析')
     logger.info('=' * 50)
     analyzer = Analyzer()
-    report = analyzer.analyze(categorized)
+    report = await analyzer.analyze(categorized)
 
     if not report.get('report'):
         logger.warning('分析报告为空')

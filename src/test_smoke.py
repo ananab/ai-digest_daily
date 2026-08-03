@@ -61,13 +61,13 @@ async def test_fallback_report(categorized):
     from src.config import config
 
     # 临时清空 API key 以测试降级模式
-    original_key = config.anthropic_api_key
-    config.anthropic_api_key = ''
+    original_key = config.kimi_api_key
+    config.kimi_api_key = ''
 
     analyzer = Analyzer()
     report = analyzer._fallback_report(categorized)
 
-    config.anthropic_api_key = original_key
+    config.kimi_api_key = original_key
     return report
 
 

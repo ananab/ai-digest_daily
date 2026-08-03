@@ -9,10 +9,10 @@ load_dotenv()
 class Config:
     """应用配置"""
 
-    # Claude API
-    anthropic_api_key: str = os.getenv('ANTHROPIC_API_KEY', '')
-    claude_model_filter: str = os.getenv('CLAUDE_MODEL_FILTER', 'claude-3-5-haiku-20241022')
-    claude_model_report: str = os.getenv('CLAUDE_MODEL_REPORT', 'claude-3-5-sonnet-20241022')
+    # Kimi (Moonshot AI) API
+    kimi_api_key: str = os.getenv('KIMI_API_KEY', '')
+    kimi_model_filter: str = os.getenv('KIMI_MODEL_FILTER', 'kimi-k2.7-code')
+    kimi_model_report: str = os.getenv('KIMI_MODEL_REPORT', 'kimi-k2.6')
 
     # 飞书
     feishu_webhook_url: str = os.getenv('FEISHU_WEBHOOK_URL', '')
@@ -28,8 +28,8 @@ class Config:
 
     def validate(self):
         """验证必需配置"""
-        if not self.anthropic_api_key:
-            raise ValueError('ANTHROPIC_API_KEY 未配置')
+        if not self.kimi_api_key:
+            raise ValueError('KIMI_API_KEY 未配置')
         if not self.feishu_webhook_url:
             raise ValueError('FEISHU_WEBHOOK_URL 未配置')
 
