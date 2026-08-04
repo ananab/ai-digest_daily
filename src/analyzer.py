@@ -132,9 +132,10 @@ class Analyzer:
 - 关键词：用户研究、用研、深访、访谈、UX、用户体验、social listening、用户洞察
 
 **客服AI**
-- 来源：CX Today、CMSWire、Zendesk、Intercom、CustomerThink
+- 来源：CX Today、Zendesk、Intercom
 - 标记：【客服AI】
-- 关键词：客服、customer service、contact center、坐席、Cresta、Decagon、客服机器人
+- 关键词：客服、customer service、contact center、坐席、Cresta、Decagon、客服机器人、AI agent
+- **严格规则**：只包含AI客服机器人、智能坐席助手、虚拟客服助手相关内容。排除：一般CX管理、销售营销、社区讨论、人事任命（除非明确涉及AI客服）
 
 **模型发布/更新**
 - 标记：【模型发布/更新】
@@ -166,6 +167,8 @@ class Analyzer:
 - 每个板块都必须有内容，不允许输出"无"或"今日暂无重大更新"
 - 如果某个板块没有直接相关内容，使用其他板块中标记为该板块的内容，或从现有素材中找出最相关的新闻
 - 对于标记为【板块名称】的内容，直接放入对应的板块
+- **严禁强行归类**：如果某条新闻明显不属于该板块主题，不要为了填满板块而强行放入。宁可放相关内容到最合适的板块，也不要放入不相关的新闻
+- **客服AI板块特别注意**：只放AI客服机器人、智能坐席助手、虚拟客服助手。不要放一般CX管理、销售营销、社区讨论、纯人事任命
 
 **通用规则**：
 - **所有英文标题必须翻译成中文**，格式：[中文标题](url)（原标题：English Title）
@@ -260,10 +263,9 @@ class Analyzer:
             ],
             '客服AI': [
                 ('https://www.cxtoday.com/feed/', 'CX Today'),
-                ('https://www.cmswire.com/feed/', 'CMSWire'),
                 ('https://www.zendesk.com/blog/feed/', 'Zendesk'),
                 ('https://www.intercom.com/blog/feed/', 'Intercom'),
-                ('https://customerthink.com/feed/', 'CustomerThink'),
+                ('https://www.salesforce.com/blog/feed/', 'Salesforce Service Cloud'),
             ],
             'Startups': [
                 ('https://techcrunch.com/feed/', 'TechCrunch'),
@@ -310,13 +312,27 @@ class Analyzer:
         return '\n\n'.join(valid_results)
 
     async def _fetch_from_feeds(self, domain: str, feeds: list) -> str:
-        """从RSS源抓取最新内容，失败时用Kimi联网搜索"""
+        """从RSS源抓取最新内容，过滤不相关内容，不足时用Kimi联网搜索"""
         import httpx
         import feedparser
         from bs4 import BeautifulSoup
         from datetime import date
 
+        # 每个领域的过滤关键词（必须包含至少一个）
+        filter_keywords = {
+            'OTA与旅游AI': ['AI', '人工智能', 'machine learning', 'chatbot', 'agent', '智能', '自动化', 'GPT', 'LLM', 'recommendation', 'personalization'],
+            '用户研究AI': ['AI', '人工智能', 'machine learning', 'NLP', 'sentiment', 'analysis', 'automation', 'GPT', 'LLM', 'insight'],
+            '客服AI': ['AI', 'agent', 'chatbot', 'virtual assistant', 'automation', 'GPT', 'LLM', 'copilot', 'customer service', 'support', 'bot', '机器人', '客服', '智能客服'],
+            'Startups': ['AI', 'startup', 'funding', 'raise', 'launch', 'Series', 'seed', 'venture', 'investment', 'AI startup'],
+            '模型发布/更新': ['model', 'release', 'update', 'version', 'launch', 'GPT', 'Claude', 'Gemini', 'Llama', 'open-source', '模型'],
+            '产品发布/更新': ['launch', 'release', 'update', 'product', 'feature', 'API', 'tool', 'platform', '发布', '上线'],
+            '行业动态': ['regulation', 'policy', 'partnership', 'acquisition', 'market', 'industry', 'trend', '政策', '监管', '合作'],
+            '论文研究': ['paper', 'research', 'study', 'arxiv', 'paper', 'benchmark', '论文', '研究'],
+            '技巧与观点': ['tutorial', 'guide', 'best practice', 'how to', 'tips', '技巧', '教程', '实践'],
+        }
+
         items = []
+        keywords = filter_keywords.get(domain, [])
 
         async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
             for feed_url, source_name in feeds:
@@ -327,7 +343,7 @@ class Analyzer:
                         continue
 
                     feed = feedparser.parse(response.text)
-                    for entry in feed.entries[:5]:
+                    for entry in feed.entries[:10]:  # 多抓一些以便过滤
                         title = entry.get('title', '').strip()
                         link = entry.get('link', '')
 
@@ -342,15 +358,30 @@ class Analyzer:
                         if len(summary) > 200:
                             summary = summary[:200] + '...'
 
-                        if title:
-                            items.append({
-                                'title': title,
-                                'url': link,
-                                'summary': summary,
-                                'source': source_name
-                            })
+                        # 关键词过滤：标题或摘要必须包含至少一个关键词
+                        if not title:
+                            continue
+
+                        text_to_check = (title + ' ' + summary).lower()
+                        if keywords and not any(kw.lower() in text_to_check for kw in keywords):
+                            logger.debug(f'{domain}: 跳过不相关内容 "{title[:50]}..."')
+                            continue
+
+                        items.append({
+                            'title': title,
+                            'url': link,
+                            'summary': summary,
+                            'source': source_name
+                        })
                 except Exception as e:
                     logger.error(f'{domain}: {source_name} RSS 抓取失败: {e}')
+
+        # 如果过滤后结果少于3条，触发web search fallback
+        if len(items) < 3:
+            logger.info(f'{domain}: RSS过滤后仅 {len(items)} 条，启用 Kimi 联网搜索补充')
+            web_results = await self._kimi_web_search(domain)
+            if web_results:
+                return web_results  # 直接使用web搜索结果
 
         if items:
             formatted = [f'【{domain}】']
@@ -362,7 +393,7 @@ class Analyzer:
                     line += f"\n   {item['summary']}"
                 formatted.append(line)
             result = '\n'.join(formatted)
-            logger.info(f'{domain}: RSS 获取到 {len(items)} 条')
+            logger.info(f'{domain}: RSS 获取到 {len(items)} 条（过滤后）')
             return result
 
         # RSS 全部失败，用 Kimi web_search
