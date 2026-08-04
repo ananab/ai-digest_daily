@@ -90,15 +90,15 @@ class Analyzer:
 3. 客服AI应用（坐席助手如Cresta，纯AI客服如Decagon）
 4. 通用AI技术、创业公司、学术研究
 
-请基于以下今日动态，生成一份适合飞书群播报的中文日报。
+请基于以下本周动态，生成一份适合飞书群播报的中文周报。
 
-今日动态：
+本周动态：
 {all_data}
 
 请严格按以下格式生成报告（使用中文）：
 
-## 🔍 今日速览
-（你是科技媒体编辑，请根据以上素材写一段「今日速览」总结。要求：
+## 🔍 本周速览
+（你是科技媒体编辑，请根据以上素材写一段「本周速览」总结。要求：
 - 5-8 条要点，每条一行，以「• 」开头
 - **简洁专业的表达**，清晰易读，保持正式风格
 - **重点内容加粗**（用 **文字** 格式），让关键信息一眼能看到
@@ -350,10 +350,9 @@ class Analyzer:
         from datetime import date, timedelta
 
         today = date.today()
-        last_monday = today - timedelta(days=today.weekday() + 7)  # 上周一
-        this_monday = today - timedelta(days=today.weekday())  # 本周一
+        seven_days_ago = today - timedelta(days=7)
 
-        time_range = f'{last_monday.strftime("%Y-%m-%d")}至{this_monday.strftime("%Y-%m-%d")}'
+        time_range = f'{seven_days_ago.strftime("%Y-%m-%d")}至{today.strftime("%Y-%m-%d")}'
 
         domain_queries = {
             'OTA与旅游AI': f'{time_range} OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',

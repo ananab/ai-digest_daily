@@ -92,7 +92,7 @@ async def collect_all():
 
 async def run():
     """主流程"""
-    logger.info(f'AI Daily Digest 启动 - {date.today().isoformat()}')
+    logger.info(f'AI Weekly Digest 启动 - {date.today().isoformat()}')
 
     # 验证配置
     try:

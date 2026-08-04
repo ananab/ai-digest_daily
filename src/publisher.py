@@ -1,6 +1,6 @@
 import logging
 import httpx
-from datetime import date
+from datetime import date, timedelta
 from .config import config
 
 logger = logging.getLogger(__name__)
@@ -62,7 +62,9 @@ class FeishuPublisher:
     def _build_card(self, report: dict) -> dict:
         """构建飞书消息卡片"""
         report_text = report.get('report', '')
-        today = date.today().strftime('%Y-%m-%d')
+        today = date.today()
+        week_ago = today - timedelta(days=7)
+        date_range = f"{week_ago.strftime('%m/%d')}-{today.strftime('%m/%d')}"
 
         # 飞书卡片消息格式
         card = {
@@ -74,7 +76,7 @@ class FeishuPublisher:
                 "header": {
                     "template": "blue",
                     "title": {
-                        "content": f"🤖 AI 前沿日报 | {today}",
+                        "content": f"🤖 AI 前沿周报 | {date_range}",
                         "tag": "plain_text"
                     }
                 },
@@ -91,7 +93,11 @@ class FeishuPublisher:
                         "elements": [
                             {
                                 "tag": "plain_text",
-                                "content": "由 AI Daily Digest 自动生成 | Powered by Kimi"
+                                "content": f"数据来源时间：{week_ago.strftime('%Y-%m-%d')} 至 {today.strftime('%Y-%m-%d')}"
+                            },
+                            {
+                                "tag": "plain_text",
+                                "content": "由 AI Weekly Digest 自动生成 | Powered by Kimi"
                             }
                         ]
                     }

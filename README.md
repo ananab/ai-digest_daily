@@ -1,6 +1,6 @@
-# AI 前沿信息每日汇总 Agent
+# AI 前沿信息每周汇总 Agent
 
-自动化采集多源 AI 领域最新动态，通过 Kimi (Moonshot AI) 智能分析，每日推送到飞书机器人。
+自动化采集多源 AI 领域最新动态，通过 Kimi (Moonshot AI) 智能分析，每周推送到飞书机器人。
 
 ## 数据源
 
@@ -40,7 +40,7 @@ python src/main.py
 
 ### GitHub Actions
 
-项目包含 `.github/workflows/daily-digest.yml`，每天北京时间 9:00 自动运行。
+项目包含 `.github/workflows/daily-digest.yml`，每周一北京时间 8:00 自动运行。
 
 在仓库 Settings → Secrets → Actions 中添加：
 
