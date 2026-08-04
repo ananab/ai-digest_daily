@@ -157,7 +157,7 @@ class Analyzer:
 - 关键词：startup、创业、融资、funding、Series A/B/C、seed、pre-seed、venture、stealth
 - **严格规则**：只包含未上市创业公司的新闻
 - 内容类型：融资（如"June获2000万pre-seed"）、产品首发、市场扩张
-- 排除：上市公司（Palantir、Microsoft等）的新闻、CEO个人观点、行业评论
+- 排除：上市公司（Palantir、Microsoft等）的新闻、CEO个人观点、行业评论、实习/招聘信息汇总、工具列表、资源聚合页
 
 **行业动态**
 - 标记：【行业动态】
