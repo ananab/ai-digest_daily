@@ -129,38 +129,46 @@ class Analyzer:
 **用户研究AI**
 - 来源：UserWeekly、Dscout、User Interviews、UXRen
 - 标记：【用户研究AI】
-- 关键词：用户研究、用研、深访、访谈、UX、用户体验、social listening、用户洞察
+- 关键词：用户研究、用研、深访、访谈、social listening、用户洞察、usability test、user interview
+- **严格规则**：只包含「研究用户」的方法和工具（访谈、问卷、可用性测试、用户洞察平台）。排除：产品设计工具（如Claude Design、Figma）、产品功能介绍（如"Claude记住项目"）、一般UX/UI设计技巧
 
 **客服AI**
 - 来源：CX Today、Zendesk、Intercom
 - 标记：【客服AI】
-- 关键词：客服、customer service、contact center、坐席、Cresta、Decagon、客服机器人、AI agent
-- **严格规则**：只包含AI客服机器人、智能坐席助手、虚拟客服助手相关内容。排除：一般CX管理、销售营销、社区讨论、人事任命（除非明确涉及AI客服）
+- 关键词：客服、customer service、contact center、坐席、Cresta、Decagon、客服机器人、AI客服、智能客服
+- **严格规则**：只包含AI客服机器人、智能坐席助手、虚拟客服助手的具体应用和部署案例。排除：AI安全事件、一般CX管理、销售营销、社区讨论、人事任命、技术教程（除非明确是客服AI应用教程）
 
 **模型发布/更新**
 - 标记：【模型发布/更新】
-- 关键词：GPT、Claude、Gemini、Llama、模型、model、开源模型
+- 关键词：GPT、Claude、Gemini、Llama、模型、model、开源模型、大模型、foundation model
+- 内容类型：新模型发布、模型版本更新、模型性能对比、开源模型发布
 
 **产品发布/更新**
 - 标记：【产品发布/更新】
-- 关键词：发布、launch、release、product、产品、工具、tool、API
+- 关键词：发布、launch、release、product、产品、工具、tool、API、feature、功能、update
+- 内容类型：新产品发布、产品功能更新（如"Claude如何记住项目"、"Claude Design 3D"）、API发布、新工具上线
+- **注意**：AI产品的具体功能介绍、使用技巧属于此分类，不属于用户研究AI
 
 **Startups**
 - 来源：TechCrunch AI、Newcomer、ProductHunt
 - 标记：【Startups】
-- 关键词：startup、创业、融资、funding
+- 关键词：startup、创业、融资、funding、Series A/B/C、seed、venture
+- 内容类型：创业公司融资、产品发布、市场扩张
 
 **行业动态**
 - 标记：【行业动态】
-- 关键词：政策、regulation、合作、partnership、市场、market、收购、acquisition
+- 关键词：政策、regulation、合作、partnership、市场、market、收购、acquisition、security、安全、breach、hack
+- 内容类型：政策法规、企业合作、市场收购、安全事件（如"OpenAI遭黑客攻击"）、行业趋势
 
 **论文研究**
 - 标记：【论文研究】
-- 关键词：论文、paper、arxiv、研究、research、HuggingFace
+- 关键词：论文、paper、arxiv、研究、research、HuggingFace、benchmark、evaluation
+- 内容类型：学术论文、研究报告、技术论文、基准测试
 
 **技巧与观点**
 - 标记：【技巧与观点】
-- 关键词：技巧、实践、practice、观点、opinion、best practice、tutorial、guide
+- 关键词：技巧、实践、practice、观点、opinion、best practice、tutorial、guide、how to、教程
+- 内容类型：技术教程（如"用LangGraph构建Agent"）、最佳实践、行业观点、使用技巧、代码示例
 - 要求：每条内容必须包含标题、链接和50字以内的中文摘要
 
 **重要规则**：
@@ -320,15 +328,15 @@ class Analyzer:
 
         # 每个领域的过滤关键词（必须包含至少一个）
         filter_keywords = {
-            'OTA与旅游AI': ['AI', '人工智能', 'machine learning', 'chatbot', 'agent', '智能', '自动化', 'GPT', 'LLM', 'recommendation', 'personalization'],
-            '用户研究AI': ['AI', '人工智能', 'machine learning', 'NLP', 'sentiment', 'analysis', 'automation', 'GPT', 'LLM', 'insight'],
-            '客服AI': ['AI', 'agent', 'chatbot', 'virtual assistant', 'automation', 'GPT', 'LLM', 'copilot', 'customer service', 'support', 'bot', '机器人', '客服', '智能客服'],
-            'Startups': ['AI', 'startup', 'funding', 'raise', 'launch', 'Series', 'seed', 'venture', 'investment', 'AI startup'],
-            '模型发布/更新': ['model', 'release', 'update', 'version', 'launch', 'GPT', 'Claude', 'Gemini', 'Llama', 'open-source', '模型'],
-            '产品发布/更新': ['launch', 'release', 'update', 'product', 'feature', 'API', 'tool', 'platform', '发布', '上线'],
-            '行业动态': ['regulation', 'policy', 'partnership', 'acquisition', 'market', 'industry', 'trend', '政策', '监管', '合作'],
-            '论文研究': ['paper', 'research', 'study', 'arxiv', 'paper', 'benchmark', '论文', '研究'],
-            '技巧与观点': ['tutorial', 'guide', 'best practice', 'how to', 'tips', '技巧', '教程', '实践'],
+            'OTA与旅游AI': ['travel AI', 'hotel AI', 'booking AI', 'flight AI', '旅游AI', '酒店AI', '机票AI', 'OTA AI', 'Expedia AI', 'Booking.com AI', 'Airbnb AI', '携程AI', '飞猪AI', 'travel chatbot', 'travel agent', 'travel personalization'],
+            '用户研究AI': ['user research', 'UX research', 'user study', 'usability', '用户研究', '用研', '深访', '用户体验研究', 'social listening', 'user insight', 'user interview', 'usability test', 'UX insight', '用户洞察AI', 'UX AI tool'],
+            '客服AI': ['customer service AI', 'customer support AI', 'service chatbot', 'support chatbot', '客服AI', '客服机器人', '智能客服', 'service agent AI', 'support agent AI', 'contact center AI', 'call center AI', 'service bot', 'support bot', 'CX AI assistant', 'service copilot'],
+            'Startups': ['startup', 'funding', 'raise', 'Series A', 'Series B', 'seed round', 'venture', 'investment', '创业', '融资', 'startup launch', 'AI startup'],
+            '模型发布/更新': ['model release', 'model update', 'model launch', 'new model', '模型发布', '模型更新', 'GPT update', 'Claude update', 'Gemini release', 'Llama release', 'open-source model', '开源模型'],
+            '产品发布/更新': ['product launch', 'product release', 'product update', 'new feature', 'API launch', 'tool launch', 'platform update', '产品发布', '产品更新', '新功能', 'feature release'],
+            '行业动态': ['regulation', 'policy', 'partnership', 'acquisition', 'market trend', 'industry news', '政策', '监管', '合作', '收购', '市场趋势', '行业新闻'],
+            '论文研究': ['paper', 'research', 'study', 'arxiv', 'benchmark', '论文', '研究', '学术'],
+            '技巧与观点': ['tutorial', 'guide', 'best practice', 'how to', 'tips', '技巧', '教程', '实践', 'opinion', '观点', 'analysis'],
         }
 
         items = []
