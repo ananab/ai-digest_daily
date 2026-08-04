@@ -62,9 +62,16 @@ class FeishuPublisher:
     def _build_card(self, report: dict) -> dict:
         """构建飞书消息卡片"""
         report_text = report.get('report', '')
+        llm_used = report.get('llm_used', None)
         today = date.today()
         week_ago = today - timedelta(days=7)
         date_range = f"{week_ago.strftime('%m/%d')}-{today.strftime('%m/%d')}"
+
+        # 动态生成 powered by 文本
+        if llm_used:
+            powered_by = f"Powered by {llm_used}"
+        else:
+            powered_by = "Powered by AI"
 
         # 飞书卡片消息格式
         card = {
@@ -97,7 +104,7 @@ class FeishuPublisher:
                             },
                             {
                                 "tag": "plain_text",
-                                "content": "由 AI Weekly Digest 自动生成 | Powered by Kimi"
+                                "content": f"由 AI Weekly Digest 自动生成 | {powered_by}"
                             }
                         ]
                     }

@@ -12,16 +12,26 @@ class Analyzer:
     """Kimi (Moonshot AI) 智能分析器"""
 
     def __init__(self):
-        self._client = None
+        self._deepseek_client = None
+        self._kimi_client = None
 
     @property
-    def client(self):
-        if self._client is None and config.kimi_api_key:
-            self._client = OpenAI(
+    def deepseek_client(self):
+        if self._deepseek_client is None and config.deepseek_api_key:
+            self._deepseek_client = OpenAI(
+                api_key=config.deepseek_api_key,
+                base_url=config.deepseek_base_url,
+            )
+        return self._deepseek_client
+
+    @property
+    def kimi_client(self):
+        if self._kimi_client is None and config.kimi_api_key:
+            self._kimi_client = OpenAI(
                 api_key=config.kimi_api_key,
                 base_url="https://api.moonshot.cn/v1",
             )
-        return self._client
+        return self._kimi_client
 
     async def analyze(
         self,
@@ -164,37 +174,52 @@ class Analyzer:
 - 突出技术创新和实际影响
 - 优先突出OTA、用户研究、客服AI三个重点领域"""
 
-        try:
-            response = self.client.chat.completions.create(
-                model=config.kimi_model_report,
-                max_tokens=15000,
-                messages=[
-                    {'role': 'system', 'content': '你是一个科技媒体编辑，负责生成AI领域日报。'},
-                    {'role': 'user', 'content': prompt},
-                ],
-            )
+        report_text = None
+        llm_used = None
 
-            if not response.choices:
-                logger.error(f'生成报告失败: response.choices 为空, response={response}')
-                return {
-                    'report': self._fallback_report(trimmed_data),
-                    'data': trimmed_data,
-                }
+        # 1. 尝试 DeepSeek (primary)
+        if self.deepseek_client:
+            try:
+                logger.info('使用 DeepSeek 生成报告...')
+                response = self.deepseek_client.chat.completions.create(
+                    model=config.deepseek_model,
+                    max_tokens=15000,
+                    messages=[
+                        {'role': 'system', 'content': '你是一个科技媒体编辑，负责生成AI领域周报。'},
+                        {'role': 'user', 'content': prompt},
+                    ],
+                )
+                if response.choices and response.choices[0].message.content:
+                    report_text = response.choices[0].message.content
+                    llm_used = 'DeepSeek'
+                    logger.info('DeepSeek 生成成功')
+            except Exception as e:
+                logger.error(f'DeepSeek 生成失败: {e}')
 
-            report_text = response.choices[0].message.content
+        # 2. 尝试 Kimi (backup)
+        if not report_text and self.kimi_client:
+            try:
+                logger.info('使用 Kimi 生成报告...')
+                response = self.kimi_client.chat.completions.create(
+                    model=config.kimi_model_report,
+                    max_tokens=15000,
+                    messages=[
+                        {'role': 'system', 'content': '你是一个科技媒体编辑，负责生成AI领域周报。'},
+                        {'role': 'user', 'content': prompt},
+                    ],
+                )
+                if response.choices and response.choices[0].message.content:
+                    report_text = response.choices[0].message.content
+                    llm_used = 'Kimi'
+                    logger.info('Kimi 生成成功')
+            except Exception as e:
+                logger.error(f'Kimi 生成失败: {e}')
 
-            return {
-                'report': report_text,
-                'data': trimmed_data,
-            }
-
-        except Exception as e:
-            logger.error(f'生成报告失败: {e}')
-            # 降级：返回简单格式
-            return {
-                'report': self._fallback_report(trimmed_data),
-                'data': trimmed_data,
-            }
+        if report_text:
+            return {'report': report_text, 'data': trimmed_data, 'llm_used': llm_used}
+        else:
+            logger.error('DeepSeek 和 Kimi 都失败，使用 fallback 报告')
+            return {'report': self._fallback_report(trimmed_data), 'data': trimmed_data}
 
     def _check_domain_coverage(self, all_data: str) -> list[str]:
         """检查哪些领域缺少相关内容"""
@@ -415,23 +440,46 @@ class Analyzer:
         """降级报告：不使用 LLM API"""
         from datetime import date
 
-        lines = [f'# 🤖 AI 前沿日报 | {date.today().isoformat()}\n']
+        today = date.today().isoformat()
+        lines = [f'# 🤖 AI 前沿周报 | {today}\n']
+        lines.append('⚠️ **降级报告**：LLM 生成失败，以下为原始数据\n')
 
         category_cn = {
-            'news': '📰 今日热点',
+            'news': '📰 本周热点',
             'paper': '📄 论文精选',
             'repo': '🛠️ 开源项目',
             'startups': '🚀 Startups',
         }
 
-        for category, items in data.items():
+        # 领域板块
+        domain_sections = {
+            'OTA与旅游AI': '🏨 OTA与旅游AI',
+            '用户研究AI': '🔍 用户研究AI',
+            '客服AI': '💬 客服AI',
+            '技巧与观点': '💡 技巧与观点',
+        }
+
+        # 先输出领域板块
+        for domain_key, domain_name in domain_sections.items():
+            items = data.get(domain_key, [])
             if not items:
+                continue
+
+            lines.append(f'\n## {domain_name}\n')
+            for i, item in enumerate(items[:5], 1):
+                lines.append(f'{i}. [{item.title}]({item.url})')
+                if item.summary:
+                    lines.append(f'   {item.summary[:100]}...' if len(item.summary) > 100 else f'   {item.summary}')
+
+        # 再输出主分类
+        for category, items in data.items():
+            if not items or category in domain_sections:
                 continue
 
             lines.append(f'\n## {category_cn.get(category, category)}\n')
             for i, item in enumerate(items[:5], 1):
                 lines.append(f'{i}. [{item.title}]({item.url})')
                 if item.summary:
-                    lines.append(f'   {item.summary}')
+                    lines.append(f'   {item.summary[:100]}...' if len(item.summary) > 100 else f'   {item.summary}')
 
         return '\n'.join(lines)

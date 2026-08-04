@@ -9,7 +9,12 @@ load_dotenv()
 class Config:
     """应用配置"""
 
-    # Kimi (Moonshot AI) API
+    # DeepSeek API (primary)
+    deepseek_api_key: str = os.getenv('DEEPSEEK_API_KEY', '')
+    deepseek_model: str = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
+    deepseek_base_url: str = os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com/v1')
+
+    # Kimi (Moonshot AI) API (backup)
     kimi_api_key: str = os.getenv('KIMI_API_KEY', '')
     kimi_model_filter: str = os.getenv('KIMI_MODEL_FILTER', 'kimi-k2.7-code')
     kimi_model_report: str = os.getenv('KIMI_MODEL_REPORT', 'kimi-k2.6')
@@ -28,8 +33,8 @@ class Config:
 
     def validate(self):
         """验证必需配置"""
-        if not self.kimi_api_key:
-            raise ValueError('KIMI_API_KEY 未配置')
+        if not self.deepseek_api_key and not self.kimi_api_key:
+            raise ValueError('DEEPSEEK_API_KEY 或 KIMI_API_KEY 至少配置一个')
         if not self.feishu_webhook_url:
             raise ValueError('FEISHU_WEBHOOK_URL 未配置')
 
