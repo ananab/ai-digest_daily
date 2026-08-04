@@ -141,40 +141,51 @@ class Analyzer:
 **模型发布/更新**
 - 标记：【模型发布/更新】
 - 关键词：GPT、Claude、Gemini、Llama、模型、model、开源模型、大模型、foundation model
-- 内容类型：新模型发布、模型版本更新、模型性能对比、开源模型发布
+- **严格规则**：只包含大模型本身的技术发布（如"GPT-5发布"、"Claude 4更新"、"Llama开源"）
+- 排除：产品功能（如"Claude记住项目"放产品发布）、模型应用案例
 
 **产品发布/更新**
 - 标记：【产品发布/更新】
 - 关键词：发布、launch、release、product、产品、工具、tool、API、feature、功能、update
-- 内容类型：新产品发布、产品功能更新（如"Claude如何记住项目"、"Claude Design 3D"）、API发布、新工具上线
-- **注意**：AI产品的具体功能介绍、使用技巧属于此分类，不属于用户研究AI
+- **严格规则**：只包含AI产品的功能发布和更新（如"Claude Design 3D"、"Claude记忆功能"、"新API发布"）
+- 内容类型：新产品发布、产品功能更新、API发布、新工具上线
+- 排除：模型发布（放模型发布）、创业公司产品首发融资（放Startups）
 
 **Startups**
 - 来源：TechCrunch AI、Newcomer、ProductHunt
 - 标记：【Startups】
-- 关键词：startup、创业、融资、funding、Series A/B/C、seed、venture
-- 内容类型：创业公司融资、产品发布、市场扩张
+- 关键词：startup、创业、融资、funding、Series A/B/C、seed、pre-seed、venture、stealth
+- **严格规则**：只包含未上市创业公司的新闻
+- 内容类型：融资（如"June获2000万pre-seed"）、产品首发、市场扩张
+- 排除：上市公司（Palantir、Microsoft等）的新闻、CEO个人观点、行业评论
 
 **行业动态**
 - 标记：【行业动态】
-- 关键词：政策、regulation、合作、partnership、市场、market、收购、acquisition、security、安全、breach、hack
-- 内容类型：政策法规、企业合作、市场收购、安全事件（如"OpenAI遭黑客攻击"）、行业趋势
+- 关键词：政策、regulation、合作、partnership、市场、market、收购、acquisition、security、安全、breach、hack、CEO、观点
+- **严格规则**：包含AI行业的宏观动态
+- 内容类型：政策法规、企业合作、市场收购、安全事件（如"OpenAI遭黑客攻击"）、上市公司CEO观点（如"Palantir CEO称AI行业马克思主义"）、行业趋势分析
+- 排除：具体产品发布（放产品发布）、技术教程（放技巧与观点）
 
 **论文研究**
 - 标记：【论文研究】
 - 关键词：论文、paper、arxiv、研究、research、HuggingFace、benchmark、evaluation
-- 内容类型：学术论文、研究报告、技术论文、基准测试
+- **严格规则**：只包含学术论文和技术研究
+- 内容类型：学术论文（arXiv）、研究报告、技术论文、基准测试、学术机构研究
+- 排除：产品技术博客（放产品发布或技巧与观点）
 
 **技巧与观点**
 - 标记：【技巧与观点】
-- 关键词：技巧、实践、practice、观点、opinion、best practice、tutorial、guide、how to、教程
-- 内容类型：技术教程（如"用LangGraph构建Agent"）、最佳实践、行业观点、使用技巧、代码示例
+- 关键词：技巧、实践、practice、观点、opinion、best practice、tutorial、guide、how to、教程、构建、build
+- **严格规则**：包含技术教程和实践指南
+- 内容类型：技术教程（如"用LangGraph构建Agent"）、最佳实践、代码示例、使用技巧、行业深度分析
 - 要求：每条内容必须包含标题、链接和50字以内的中文摘要
+- 排除：产品功能介绍（放产品发布）、融资新闻（放Startups）
 
 **重要规则**：
 - 每个板块都必须有内容，不允许输出"无"或"今日暂无重大更新"
 - 如果某个板块没有直接相关内容，使用其他板块中标记为该板块的内容，或从现有素材中找出最相关的新闻
 - 对于标记为【板块名称】的内容，直接放入对应的板块
+- **严禁重复分类**：每条新闻只能出现在一个板块中，不要将同一链接放到多个板块。如果有歧义，选择最具体、最相关的板块
 - **严禁强行归类**：如果某条新闻明显不属于该板块主题，不要为了填满板块而强行放入。宁可放相关内容到最合适的板块，也不要放入不相关的新闻
 - **客服AI板块特别注意**：只放AI客服机器人、智能坐席助手、虚拟客服助手。不要放一般CX管理、销售营销、社区讨论、纯人事任命
 
