@@ -400,8 +400,8 @@ class Analyzer:
 
         # 如果过滤后结果少于3条，触发web search fallback
         if len(items) < 3:
-            logger.info(f'{domain}: RSS过滤后仅 {len(items)} 条，启用 Kimi 联网搜索补充')
-            web_results = await self._kimi_web_search(domain)
+            logger.info(f'{domain}: RSS过滤后仅 {len(items)} 条，启用 web search 补充')
+            web_results = await self._llm_web_search(domain)
             if web_results:
                 return web_results  # 直接使用web搜索结果
 
@@ -418,9 +418,91 @@ class Analyzer:
             logger.info(f'{domain}: RSS 获取到 {len(items)} 条（过滤后）')
             return result
 
-        # RSS 全部失败，用 Kimi web_search
-        logger.info(f'{domain}: RSS 失败，启用 Kimi 联网搜索')
-        return await self._kimi_web_search(domain)
+        # RSS 全部失败，用 LLM web search
+        logger.info(f'{domain}: RSS 失败，启用 LLM 联网搜索')
+        return await self._llm_web_search(domain)
+
+    async def _llm_web_search(self, domain: str) -> str:
+        """使用 LLM 联网搜索获取领域新闻（DeepSeek优先，Kimi fallback）"""
+        # 1. 尝试 DeepSeek web search
+        if self.deepseek_client:
+            result = await self._deepseek_web_search(domain)
+            if result:
+                return result
+
+        # 2. 尝试 Kimi web search
+        if self.kimi_client:
+            return await self._kimi_web_search(domain)
+
+        logger.error(f'{domain}: DeepSeek 和 Kimi 都不可用')
+        return ''
+
+    async def _deepseek_web_search(self, domain: str) -> str:
+        """使用 DeepSeek 联网搜索获取领域新闻"""
+        import httpx
+        from datetime import date, timedelta
+
+        today = date.today()
+        seven_days_ago = today - timedelta(days=7)
+
+        time_range = f'{seven_days_ago.strftime("%Y-%m-%d")}至{today.strftime("%Y-%m-%d")}'
+
+        domain_queries = {
+            'OTA与旅游AI': f'{time_range} OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',
+            '用户研究AI': f'{time_range} 用户研究 UX Research social listening AI平台最新动态',
+            '客服AI': f'{time_range} 客服AI customer service AI Cresta Decagon 智能客服最新动态',
+            'Startups': f'{time_range} AI创业公司 融资 产品发布 TechCrunch最新动态',
+            '模型发布/更新': f'{time_range} 大语言模型 发布 GPT Claude Gemini Llama 开源模型',
+            '产品发布/更新': f'{time_range} AI产品 工具 应用 发布 更新 OpenAI Anthropic',
+            '行业动态': f'{time_range} AI行业 政策 合作 市场 收购 投资',
+            '论文研究': f'{time_range} AI论文 研究 arxiv 深度学习 机器学习',
+            '技巧与观点': f'{time_range} AI最佳实践 技巧 教程 观点 prompt engineering',
+        }
+        query = domain_queries.get(domain, f'{time_range} {domain} 最新动态')
+
+        try:
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(
+                    f"{config.deepseek_base_url}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {config.deepseek_api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": config.deepseek_model,
+                        "max_tokens": 3000,
+                        "messages": [
+                            {"role": "system", "content": f"你是一个科技新闻编辑。今天是{today.strftime('%Y-%m-%d')}。请搜索并整理{time_range}期间的相关新闻。每条新闻需包含标题、来源和URL链接。"},
+                            {"role": "user", "content": f"请搜索以下内容，返回{time_range}期间的新闻（3-5条），格式：标题 - 来源 - URL\n\n{query}"}
+                        ],
+                        "tools": [
+                            {
+                                "type": "builtin_function",
+                                "function": {
+                                    "name": "web_search"
+                                }
+                            }
+                        ]
+                    }
+                )
+
+                data = response.json()
+                content = data.get('choices', [{}])[0].get('message', {}).get('content', '').strip()
+
+                refusal_phrases = ['无法提供', '无法访问', '无法确认', '很抱歉', '抱歉，我', '无法验证', '无法搜索']
+                has_refusal = any(phrase in content for phrase in refusal_phrases)
+
+                if not has_refusal and len(content) > 50:
+                    result = f'【{domain}】\n{content}'
+                    logger.info(f'{domain}: DeepSeek 联网搜索成功')
+                    return result
+                else:
+                    logger.warning(f'{domain}: DeepSeek 联网搜索返回空或拒绝')
+                    return ''
+
+        except Exception as e:
+            logger.error(f'{domain}: DeepSeek 联网搜索失败: {e}')
+            return ''
 
     async def _kimi_web_search(self, domain: str) -> str:
         """使用 Kimi 联网搜索获取领域新闻"""
