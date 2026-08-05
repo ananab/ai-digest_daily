@@ -25,7 +25,7 @@ class UserWeeklyCollector(BaseCollector):
                 response = await self.client.get(rss_url)
                 if response.status_code == 200:
                     feed = feedparser.parse(response.text)
-                    for entry in feed.entries[:15]:
+                    for entry in feed.entries[:50]:
                         title = entry.get('title', '')
                         link = entry.get('link', '')
                         summary = entry.get('summary', '')

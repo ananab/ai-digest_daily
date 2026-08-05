@@ -33,7 +33,7 @@ class StartupsCollector(BaseCollector):
                 response.raise_for_status()
                 feed = feedparser.parse(response.text)
 
-                for entry in feed.entries[:15]:
+                for entry in feed.entries[:50]:
                     title = entry.get('title', '')
                     link = entry.get('link', '')
                     summary = entry.get('summary', '')

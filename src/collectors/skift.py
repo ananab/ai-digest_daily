@@ -25,7 +25,7 @@ class SkiftCollector(BaseCollector):
                 response = await self.client.get(rss_url)
                 if response.status_code == 200:
                     feed = feedparser.parse(response.text)
-                    for entry in feed.entries[:15]:
+                    for entry in feed.entries[:50]:
                         title = entry.get('title', '')
                         link = entry.get('link', '')
                         summary = entry.get('summary', '')
@@ -51,7 +51,7 @@ class SkiftCollector(BaseCollector):
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'lxml')
 
-            for article in soup.select('article, .post, [class*="article"]')[:15]:
+            for article in soup.select('article, .post, [class*="article"]')[:50]:
                 link_el = article.select_one('a[href]')
                 if not link_el:
                     continue
