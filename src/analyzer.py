@@ -154,17 +154,20 @@ class Analyzer:
 **Startups**
 - 来源：TechCrunch AI、Newcomer、ProductHunt
 - 标记：【Startups】
-- 关键词：startup、创业、融资、funding、Series A/B/C、seed、pre-seed、venture、stealth
+- 关键词：startup、创业、融资、funding、raises、Series A/B/C、seed、pre-seed、venture、stealth、valuation
 - **严格规则**：只包含未上市创业公司的新闻
-- 内容类型：融资（如"June获2000万pre-seed"）、产品首发、市场扩张
+- 内容类型：融资（如"Simile raises $200M at $2B valuation"）、产品首发、市场扩张
+- **排序规则**：必须按融资金额从大到小排序（$200M > $100M > $50M > $10M等）
 - 排除：上市公司（Palantir、Microsoft等）的新闻、CEO个人观点、行业评论、实习/招聘信息汇总、工具列表、资源聚合页
+- 特别注意：TechCrunch的融资新闻（raises/raises $X/raises $XM）必须包含在内
 
 **行业动态**
 - 标记：【行业动态】
-- 关键词：政策、regulation、合作、partnership、市场、market、收购、acquisition、security、安全、breach、hack、CEO、观点
-- **严格规则**：包含AI行业的宏观动态
-- 内容类型：政策法规、企业合作、市场收购、安全事件（如"OpenAI遭黑客攻击"）、上市公司CEO观点（如"Palantir CEO称AI行业马克思主义"）、行业趋势分析
-- 排除：具体产品发布（放产品发布）、技术教程（放技巧与观点）
+- 关键词：政策、regulation、合作、partnership、市场、market、收购、acquisition、security、安全、breach、hack、CEO、观点、AI industry
+- **严格规则**：必须是AI行业的宏观动态，内容必须直接涉及AI技术、AI公司、AI政策
+- 内容类型：AI政策法规、AI企业合作、AI公司收购、AI安全事件（如"OpenAI遭黑客攻击"）、AI公司CEO观点、AI行业趋势分析
+- 排除：具体产品发布（放产品发布）、技术教程（放技巧与观点）、纯旅游业内容（如航空公司、酒店集团的非AI新闻）、纯金融/股市新闻
+- 特别注意：如果是"AI+旅游"的内容（如Booking用AI推荐酒店），应该放【OTA与旅游AI】而不是行业动态
 
 **论文研究**
 - 标记：【论文研究】
