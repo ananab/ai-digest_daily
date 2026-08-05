@@ -48,12 +48,12 @@ class Analyzer:
         """
         logger.info('开始生成报告...')
 
-        # 每类取前10条（已按采集顺序排序）
+        # 每类取前30条给LLM筛选（已按采集顺序排序）
         trimmed = {}
         for category, items in categorized_data.items():
             if not items:
                 continue
-            trimmed[category] = items[:10]
+            trimmed[category] = items[:30]
             logger.info(f'{category}: {len(items)} 条 → 取前 {len(trimmed[category])} 条')
 
         report = await self._generate_report(trimmed)
