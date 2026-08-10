@@ -362,7 +362,7 @@ class Analyzer:
         items = []
         keywords = filter_keywords.get(domain, [])
 
-        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
             for feed_url, source_name in feeds:
                 try:
                     response = await client.get(feed_url)
@@ -401,8 +401,12 @@ class Analyzer:
                             'summary': summary,
                             'source': source_name
                         })
+                except (httpx.TimeoutException, httpx.ConnectTimeout, httpx.ReadTimeout) as e:
+                    logger.error(f'{domain}: {source_name} RSS 超时: {type(e).__name__}')
+                except httpx.HTTPError as e:
+                    logger.error(f'{domain}: {source_name} RSS HTTP错误: {type(e).__name__}: {e}')
                 except Exception as e:
-                    logger.error(f'{domain}: {source_name} RSS 抓取失败: {e}')
+                    logger.error(f'{domain}: {source_name} RSS 抓取失败: {type(e).__name__}: {e}')
 
         # 如果过滤后结果少于3条，触发web search fallback
         if len(items) < 3:
@@ -429,18 +433,19 @@ class Analyzer:
         return await self._llm_web_search(domain)
 
     async def _llm_web_search(self, domain: str) -> str:
-        """使用 LLM 联网搜索获取领域新闻（DeepSeek优先，Kimi fallback）"""
-        # 1. 尝试 DeepSeek web search
-        if self.deepseek_client:
-            result = await self._deepseek_web_search(domain)
+        """使用 LLM 联网搜索获取领域新闻（Kimi优先，DeepSeek fallback）"""
+        # 1. 优先尝试 Kimi web search（支持真实联网）
+        if self.kimi_client:
+            result = await self._kimi_web_search(domain)
             if result:
                 return result
+            logger.info(f'{domain}: Kimi web search 失败，尝试 DeepSeek')
 
-        # 2. 尝试 Kimi web search
-        if self.kimi_client:
-            return await self._kimi_web_search(domain)
+        # 2. DeepSeek fallback（无真实联网，基于训练数据）
+        if self.deepseek_client:
+            return await self._deepseek_web_search(domain)
 
-        logger.error(f'{domain}: DeepSeek 和 Kimi 都不可用')
+        logger.error(f'{domain}: Kimi 和 DeepSeek 都不可用')
         return ''
 
     async def _deepseek_web_search(self, domain: str) -> str:
