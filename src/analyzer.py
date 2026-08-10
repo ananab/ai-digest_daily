@@ -433,19 +433,19 @@ class Analyzer:
         return await self._llm_web_search(domain)
 
     async def _llm_web_search(self, domain: str) -> str:
-        """使用 LLM 联网搜索获取领域新闻（Kimi优先，DeepSeek fallback）"""
-        # 1. 优先尝试 Kimi web search（支持真实联网）
-        if self.kimi_client:
-            result = await self._kimi_web_search(domain)
+        """使用 LLM 联网搜索获取领域新闻（DeepSeek优先，Kimi fallback）"""
+        # 1. 优先尝试 DeepSeek web search
+        if self.deepseek_client:
+            result = await self._deepseek_web_search(domain)
             if result:
                 return result
-            logger.info(f'{domain}: Kimi web search 失败，尝试 DeepSeek')
+            logger.info(f'{domain}: DeepSeek web search 失败，尝试 Kimi')
 
-        # 2. DeepSeek fallback（无真实联网，基于训练数据）
-        if self.deepseek_client:
-            return await self._deepseek_web_search(domain)
+        # 2. Kimi fallback
+        if self.kimi_client:
+            return await self._kimi_web_search(domain)
 
-        logger.error(f'{domain}: Kimi 和 DeepSeek 都不可用')
+        logger.error(f'{domain}: DeepSeek 和 Kimi 都不可用')
         return ''
 
     async def _deepseek_web_search(self, domain: str) -> str:
