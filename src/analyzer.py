@@ -101,27 +101,27 @@ class Analyzer:
                 all_data += f'\n\n{fallback_content}'
 
         prompt = f"""你是一个科技媒体编辑，特别关注以下领域：
-1. OTA行业（在线旅游）中AI作为酒店和机票预订入口的应用
-2. 用户研究公司/创业公司（用研、深度访谈、social listening AI平台）
+1. OTA（在线旅游）中AI作为酒店和机票预订入口的应用
+2. Market Research（市场研究、用研、深访、social listening AI平台）
 3. 客服AI应用（坐席助手如Cresta，纯AI客服如Decagon）
-4. 通用AI技术、创业公司、学术研究
+4. SaaS（企业级AI软件、工具、平台）
+5. To C 大模型产品（消费者端AI产品、大模型应用）
+6. 其他AI领域（模型发布、论文、行业动态、AI Native转型、AI Native组织演变等）
 
 **全局强制规则（必须遵守）**：
 
 1. **所有内容必须与AI直接相关**
    - 每条新闻必须明确提及AI、人工智能、机器学习、大模型、GPT、Claude、LLM、Agent、Chatbot等AI技术关键词
    - 纯商业/财务/战略新闻，如果不涉及AI技术应用，**一律排除**
-   - 示例：
-     ✅ 包含："Booking.com推出AI行程规划助手"
-     ❌ 排除："MakeMyTrip酒店增长对冲航空下滑"（纯财务新闻）
-     ❌ 排除："Spotnana 30%业务来自个人消费"（纯商业模式）
-     ❌ 排除："伊朗战争拖累酒店Q2财报"（地缘政治+财务）
 
 2. **所有新闻必须发布于 {date_range}**
-   - 严格排除所有超出此时间范围的内容
-   - 如果某条新闻的发布日期不在{week_ago.strftime('%Y-%m-%d')}至{now.strftime('%Y-%m-%d')}范围内，必须丢弃
-   - 优先选择最近3天内的新闻，其次是3-7天前的新闻
+   - 严格排除超出此时间范围的内容
    - 年度报告、季度总结等周期性内容，如果不是本周发布，一律排除
+
+3. **特别关注**：
+   - 大企业如何向AI Native转型（如传统企业引入AI改造业务流程）
+   - AI Native组织的形态演变（如全员AI、扁平化AI团队、Agent-First组织等）
+   - 这些内容根据其行业属性放到对应板块
 
 请基于以下本周动态，生成一份适合飞书群播报的中文周报。
 
@@ -135,7 +135,7 @@ class Analyzer:
 - 5-8 条要点，每条一行，以「• 」开头
 - **简洁专业的表达**，清晰易读，保持正式风格
 - **重点内容加粗**（用 **文字** 格式），让关键信息一眼能看到
-- 优先关注上述4个领域（OTA/用研/客服AI/通用AI）
+- 优先关注上述6个领域
 - 不要编造素材中没有的信息
 - 不要输出开场白或结尾寒暄
 - 总字数控制在 300 字以内）
@@ -144,93 +144,62 @@ class Analyzer:
 
 请按以下规则将内容分类到对应板块（每个板块都必须填写）：
 
-**OTA与旅游AI**
+**OTA/旅游**
 - 来源：Skift、PhocusWire、环球旅讯
 - 标记：【OTA与旅游AI】
-- 关键词：酒店、机票、预订、旅游、OTA、Booking、Expedia、Airbnb、携程、飞猪
+- 关键词：酒店、机票、预订、旅游、OTA、Booking、Expedia、Airbnb、携程、飞猪、travel AI
+- **严格规则**：只包含与AI直接相关的旅游行业新闻。排除纯旅游商业新闻
 
-**用户研究AI**
+**Market Research**
 - 来源：UserWeekly、Dscout、User Interviews、UXRen
-- 标记：【用户研究AI】
-- 关键词：用户研究、用研、深访、访谈、social listening、用户洞察、usability test、user interview
-- **严格规则**：只包含「研究用户」的方法和工具（访谈、问卷、可用性测试、用户洞察平台）。排除：产品设计工具（如Claude Design、Figma）、产品功能介绍（如"Claude记住项目"）、一般UX/UI设计技巧
+- 标记：【Market Research】
+- 关键词：用户研究、用研、深访、访谈、social listening、用户洞察、usability test、user interview、market research、consumer insight
+- **严格规则**：只包含「研究用户/市场」的AI方法和工具。排除：产品设计工具（如Figma）、产品功能介绍、一般UX/UI设计技巧
 
 **客服AI**
 - 来源：CX Today、Zendesk、Intercom
 - 标记：【客服AI】
 - 关键词：客服、customer service、contact center、坐席、Cresta、Decagon、客服机器人、AI客服、智能客服
-- **严格规则**：只包含AI客服机器人、智能坐席助手、虚拟客服助手的具体应用和部署案例。排除：AI安全事件、一般CX管理、销售营销、社区讨论、人事任命、技术教程（除非明确是客服AI应用教程）
+- **严格规则**：只包含AI客服机器人、智能坐席助手、虚拟客服助手。排除：一般CX管理、销售营销、社区讨论、人事任命
 
-**模型发布/更新**
-- 标记：【模型发布/更新】
-- 关键词：GPT、Claude、Gemini、Llama、模型、model、开源模型、大模型、foundation model
-- **严格规则**：只包含大模型本身的技术发布（如"GPT-5发布"、"Claude 4更新"、"Llama开源"）
-- 排除：产品功能（如"Claude记住项目"放产品发布）、模型应用案例
+**SaaS**
+- 来源：TechCrunch、VentureBeat、ProductHunt
+- 标记：【SaaS】
+- 关键词：SaaS、enterprise、platform、tool、API、automation、企业级、AI平台、B2B AI、software、AI software
+- **严格规则**：包含企业级AI软件、工具、平台的发布、更新、融资、商业模式。排除：纯消费者端产品
 
-**产品发布/更新**
-- 标记：【产品发布/更新】
-- 关键词：发布、launch、release、product、产品、工具、tool、API、feature、功能、update
-- **严格规则**：只包含AI产品的功能发布和更新（如"Claude Design 3D"、"Claude记忆功能"、"新API发布"）
-- 内容类型：新产品发布、产品功能更新、API发布、新工具上线
-- 排除：模型发布（放模型发布）、创业公司产品首发融资（放Startups）
+**To C 大模型产品**
+- 来源：TechCrunch、VentureBeat、ProductHunt、OpenAI Blog、Anthropic Blog
+- 标记：【To C 大模型产品】
+- 关键词：consumer、ChatGPT、Claude、Gemini、Copilot、consumer app、AI assistant、AI chat、personal AI
+- **严格规则**：包含消费者端AI产品、大模型应用、AI助手、个人AI工具。排除：企业级SaaS产品
 
-**Startups**
-- 来源：TechCrunch AI、Newcomer、ProductHunt、VentureBeat AI、Y Combinator
-- 标记：【Startups】
-- 关键词：startup、创业、融资、funding、raises、Series A/B/C、seed、pre-seed、venture、stealth、valuation
-- **严格规则**：只包含未上市创业公司的新闻，涵盖所有AI领域（通用AI、垂直AI、基础设施、工具等）
-- 内容类型：融资（如"Simile raises $200M at $2B valuation"）、产品首发、市场扩张
-- **排序规则**：必须按融资金额从大到小排序（$200M > $100M > $50M > $10M等）
-- 排除：上市公司（Palantir、Microsoft等）的新闻、CEO个人观点、行业评论、实习/招聘信息汇总、工具列表、资源聚合页
-- 特别注意：TechCrunch的融资新闻（raises/raises $X/raises $XM）必须包含在内
-
-**行业动态**
-- 标记：【行业动态】
-- 关键词：政策、regulation、合作、partnership、市场、market、收购、acquisition、security、安全、breach、hack、CEO、观点、AI industry
-- **严格规则**：必须是AI行业的宏观动态，内容必须直接涉及AI技术、AI公司、AI政策
-- 内容类型：AI政策法规、AI企业合作、AI公司收购、AI安全事件（如"OpenAI遭黑客攻击"）、AI公司CEO观点、AI行业趋势分析
-- 排除：具体产品发布（放产品发布）、技术教程（放技巧与观点）、纯旅游业内容（如航空公司、酒店集团的非AI新闻）、纯金融/股市新闻
-- 特别注意：如果是"AI+旅游"的内容（如Booking用AI推荐酒店），应该放【OTA与旅游AI】而不是行业动态
-
-**论文研究**
-- 标记：【论文研究】
-- 关键词：论文、paper、arxiv、研究、research、HuggingFace、benchmark、evaluation
-- **严格规则**：只包含学术论文和技术研究
-- 内容类型：学术论文（arXiv）、研究报告、技术论文、基准测试、学术机构研究
-- 排除：产品技术博客（放产品发布或技巧与观点）
-
-**技巧与观点**
-- 标记：【技巧与观点】
-- 关键词：技巧、实践、practice、观点、opinion、best practice、tutorial、guide、how to、教程、构建、build
-- **严格规则**：包含技术教程和实践指南
-- 内容类型：技术教程（如"用LangGraph构建Agent"）、最佳实践、代码示例、使用技巧、行业深度分析
-- 要求：每条内容必须包含标题、链接和50字以内的中文摘要
-- 排除：产品功能介绍（放产品发布）、融资新闻（放Startups）
+**其他**
+- 标记：【其他】
+- 关键词：模型发布、论文、行业动态、AI Native转型、AI组织演变、policy、regulation、acquisition、research、paper、观点、opinion、startup、融资、funding
+- **严格规则**：包含不属于前5类的所有AI相关内容
+- 内容类型：模型发布、学术论文、行业政策、企业合作、安全事件、AI Native转型案例、AI组织演变、行业观点、技术教程、创业公司融资
+- **排序规则**：AI Native转型和组织演变内容优先，其次按融资额排序
 
 **重要规则**：
-- **严格时间过滤**：所有新闻必须发布于 **{date_range}**，超出此时间范围的内容一律丢弃（包括年度报告、季度总结等，除非是本周发布）
-- **严禁重复链接**：每个URL只能出现在一个板块中，发现重复时保留最相关板块的版本，删除其他板块的重复项
-- **严禁内容重复**：在本周速览和各板块中，如果多条新闻讲的是同一件事（同一公司同一产品/功能/事件），必须合并为一条，选择信息最完整的版本。例如：
-  - ❌ 两条："Google Maps引入Agentic AI酒店搜索" + "Google确认Agentic酒店预订进入测试阶段"
-  - ✅ 一条："Google Maps引入Agentic AI酒店搜索，已进入测试阶段，有望实现从搜索到预订的全流程"
+- **严格时间过滤**：所有新闻必须发布于 **{date_range}**，超出此时间范围的内容一律丢弃
+- **严禁重复链接**：每个URL只能出现在一个板块中
+- **严禁内容重复**：同一事件的多条新闻合并为一条，选择信息最完整的版本
+- **严禁强行归类**：如果某条新闻不属于某板块，不要强行放入。宁可放相关内容到最合适的板块
 - 每个板块都必须有内容，不允许输出"无"或"今日暂无重大更新"
 - 如果某个板块没有直接相关内容，按以下优先级填充：
   1. 使用其他板块中标记为该板块的内容
   2. 从现有素材中找出最相关的新闻（必须在本周时间范围内）
-  3. 作为fallback，直接与LLM对话，通过websearch找到最近7天内该板块的重要新闻（需包含标题、链接、摘要）
-- 对于标记为【板块名称】的内容，直接放入对应的板块
-- **严禁强行归类**：如果某条新闻明显不属于该板块主题，不要为了填满板块而强行放入。宁可放相关内容到最合适的板块，也不要放入不相关的新闻
-- **客服AI板块特别注意**：只放AI客服机器人、智能坐席助手、虚拟客服助手。不要放一般CX管理、销售营销、社区讨论、纯人事任命
+  3. 作为fallback，直接与LLM对话，通过websearch找到最近7天内该板块的重要新闻
 
 **通用规则**：
 - **所有英文标题必须翻译成中文**，格式：[中文标题](url)（English Title）
 - 语言简洁专业，适合飞书群快速阅读
 - 链接格式: [标题](url)
 - 突出技术创新和实际影响
-- 优先突出OTA、用户研究、客服AI三个重点领域
-- **总量控制**：每个板块最多展示5条新闻，优先选择最重要、最有影响力的内容。如果某板块有大量内容，只选最有价值的5条
+- **总量控制**：每个板块最多展示5条新闻，优先选择最重要、最有影响力的内容
 - **摘要精简**：每条新闻摘要控制在30字以内，突出核心信息
-- **严禁使用表格格式**：所有板块必须使用列表格式，禁止使用表格（markdown table）。每个板块的格式应为：
+- **严禁使用表格格式**：所有板块必须使用列表格式，每个板块的格式应为：
   1. [中文标题](url)（English Title）
      摘要内容...
   2. [中文标题](url)（English Title）
@@ -287,15 +256,12 @@ class Analyzer:
         """检查哪些领域缺少相关内容"""
         missing = []
         keywords_map = {
-            'OTA与旅游AI': ['OTA', '旅游', '酒店', '机票', '预订', 'Booking', 'Expedia', 'Airbnb'],
-            '用户研究AI': ['用户研究', '用研', 'UX', '用户体验', 'social listening', '访谈'],
+            'OTA/旅游': ['OTA', '旅游', '酒店', '机票', '预订', 'Booking', 'Expedia', 'Airbnb', 'travel'],
+            'Market Research': ['用户研究', '用研', 'UX', '用户体验', 'social listening', '访谈', 'market research'],
             '客服AI': ['客服', 'customer service', 'contact center', '坐席', 'Cresta', 'Decagon'],
-            'Startups': ['startup', '创业', '融资', 'funding', 'TechCrunch', 'Newcomer', 'ProductHunt', 'seed', 'series'],
-            '模型发布/更新': ['GPT', 'Claude', 'Gemini', 'Llama', '模型', 'model', 'open-source', '开源模型'],
-            '产品发布/更新': ['发布', 'launch', 'release', 'product', '产品', '工具', 'tool', 'API'],
-            '行业动态': ['政策', 'regulation', '合作', 'partnership', '市场', 'market', '收购', 'acquisition'],
-            '论文研究': ['论文', 'paper', 'arxiv', '研究', 'research', 'HuggingFace'],
-            '技巧与观点': ['技巧', '实践', 'practice', '观点', 'opinion', 'best practice', 'tutorial', 'guide'],
+            'SaaS': ['SaaS', 'enterprise', 'platform', 'tool', 'API', 'automation', '企业级', 'B2B'],
+            'To C 大模型产品': ['consumer', 'ChatGPT', 'Claude', 'Gemini', 'Copilot', 'consumer app', 'AI assistant'],
+            '其他': ['startup', '创业', '融资', 'funding', 'model', '论文', 'paper', '政策', 'regulation', 'AI Native'],
         }
 
         for domain, keywords in keywords_map.items():
@@ -312,11 +278,11 @@ class Analyzer:
 
         # 每个领域的备用RSS源
         domain_feeds = {
-            'OTA与旅游AI': [
+            'OTA/旅游': [
                 ('https://skift.com/feed/', 'Skift'),
                 ('https://www.phocuswire.com/feed/', 'PhocusWire'),
             ],
-            '用户研究AI': [
+            'Market Research': [
                 ('https://userweekly.com/feed/', 'UserWeekly'),
                 ('https://uxplanet.org/feed', 'UXPlanet'),
             ],
@@ -326,32 +292,21 @@ class Analyzer:
                 ('https://www.intercom.com/blog/feed/', 'Intercom'),
                 ('https://www.salesforce.com/blog/feed/', 'Salesforce Service Cloud'),
             ],
-            'Startups': [
-                ('https://techcrunch.com/feed/', 'TechCrunch'),
-                ('https://www.producthunt.com/feed', 'ProductHunt'),
-            ],
-            '模型发布/更新': [
-                ('https://openai.com/blog/rss.xml', 'OpenAI Blog'),
-                ('https://www.anthropic.com/feed', 'Anthropic Blog'),
-                ('https://huggingface.co/blog/feed.xml', 'HuggingFace Blog'),
-            ],
-            '产品发布/更新': [
-                ('https://openai.com/blog/rss.xml', 'OpenAI Blog'),
-                ('https://www.anthropic.com/feed', 'Anthropic Blog'),
-                ('https://www.producthunt.com/feed', 'ProductHunt'),
-            ],
-            '行业动态': [
+            'SaaS': [
                 ('https://techcrunch.com/feed/', 'TechCrunch'),
                 ('https://venturebeat.com/feed/', 'VentureBeat'),
-                ('https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', 'The Verge AI'),
+                ('https://www.producthunt.com/feed', 'ProductHunt'),
             ],
-            '论文研究': [
+            'To C 大模型产品': [
+                ('https://openai.com/blog/rss.xml', 'OpenAI Blog'),
+                ('https://www.anthropic.com/feed', 'Anthropic Blog'),
+                ('https://www.producthunt.com/feed', 'ProductHunt'),
+            ],
+            '其他': [
+                ('https://techcrunch.com/feed/', 'TechCrunch'),
+                ('https://venturebeat.com/feed/', 'VentureBeat'),
                 ('https://arxiv.org/rss/cs.AI', 'arXiv AI'),
-                ('https://paperswithcode.com/latest', 'Papers With Code'),
-            ],
-            '技巧与观点': [
                 ('https://towardsdatascience.com/feed', 'Towards Data Science'),
-                ('https://machinelearningmastery.com/feed/', 'ML Mastery'),
             ]
         }
 
@@ -379,15 +334,12 @@ class Analyzer:
 
         # 每个领域的过滤关键词（必须包含至少一个）
         filter_keywords = {
-            'OTA与旅游AI': ['travel AI', 'hotel AI', 'booking AI', 'flight AI', '旅游AI', '酒店AI', '机票AI', 'OTA AI', 'Expedia AI', 'Booking.com AI', 'Airbnb AI', '携程AI', '飞猪AI', 'travel chatbot', 'travel agent', 'travel personalization'],
-            '用户研究AI': ['user research', 'UX research', 'user study', 'usability', '用户研究', '用研', '深访', '用户体验研究', 'social listening', 'user insight', 'user interview', 'usability test', 'UX insight', '用户洞察AI', 'UX AI tool'],
+            'OTA/旅游': ['travel AI', 'hotel AI', 'booking AI', 'flight AI', '旅游AI', '酒店AI', '机票AI', 'OTA AI', 'Expedia AI', 'Booking.com AI', 'Airbnb AI', '携程AI', '飞猪AI', 'travel chatbot', 'travel agent', 'travel personalization'],
+            'Market Research': ['user research', 'UX research', 'user study', 'usability', '用户研究', '用研', '深访', '用户体验研究', 'social listening', 'user insight', 'user interview', 'usability test', 'UX insight', '用户洞察AI', 'UX AI tool'],
             '客服AI': ['customer service AI', 'customer support AI', 'service chatbot', 'support chatbot', '客服AI', '客服机器人', '智能客服', 'service agent AI', 'support agent AI', 'contact center AI', 'call center AI', 'service bot', 'support bot', 'CX AI assistant', 'service copilot'],
-            'Startups': ['startup', 'funding', 'raise', 'Series A', 'Series B', 'seed round', 'venture', 'investment', '创业', '融资', 'startup launch', 'AI startup'],
-            '模型发布/更新': ['model release', 'model update', 'model launch', 'new model', '模型发布', '模型更新', 'GPT update', 'Claude update', 'Gemini release', 'Llama release', 'open-source model', '开源模型'],
-            '产品发布/更新': ['product launch', 'product release', 'product update', 'new feature', 'API launch', 'tool launch', 'platform update', '产品发布', '产品更新', '新功能', 'feature release'],
-            '行业动态': ['regulation', 'policy', 'partnership', 'acquisition', 'market trend', 'industry news', '政策', '监管', '合作', '收购', '市场趋势', '行业新闻'],
-            '论文研究': ['paper', 'research', 'study', 'arxiv', 'benchmark', '论文', '研究', '学术'],
-            '技巧与观点': ['tutorial', 'guide', 'best practice', 'how to', 'tips', '技巧', '教程', '实践', 'opinion', '观点', 'analysis'],
+            'SaaS': ['SaaS', 'enterprise', 'platform', 'tool', 'API', 'automation', '企业级', 'B2B', 'software', 'AI platform', 'AI tool'],
+            'To C 大模型产品': ['consumer', 'ChatGPT', 'Claude', 'Gemini', 'Copilot', 'AI assistant', 'AI chat', 'personal AI', 'consumer app'],
+            '其他': ['AI', 'model', '论文', 'paper', 'startup', '政策', 'regulation', 'AI Native', 'AI organization'],
         }
 
         items = []
@@ -485,15 +437,12 @@ class Analyzer:
         time_range = f'{seven_days_ago.strftime("%Y-%m-%d")}至{today.strftime("%Y-%m-%d")}'
 
         domain_queries = {
-            'OTA与旅游AI': f'{time_range} OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',
-            '用户研究AI': f'{time_range} 用户研究 UX Research social listening AI平台最新动态',
+            'OTA/旅游': f'{time_range} OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',
+            'Market Research': f'{time_range} 用户研究 UX Research social listening AI平台最新动态',
             '客服AI': f'{time_range} 客服AI customer service AI Cresta Decagon 智能客服最新动态',
-            'Startups': f'{time_range} AI创业公司 融资 产品发布 TechCrunch最新动态',
-            '模型发布/更新': f'{time_range} 大语言模型 发布 GPT Claude Gemini Llama 开源模型',
-            '产品发布/更新': f'{time_range} AI产品 工具 应用 发布 更新 OpenAI Anthropic',
-            '行业动态': f'{time_range} AI行业 政策 合作 市场 收购 投资',
-            '论文研究': f'{time_range} AI论文 研究 arxiv 深度学习 机器学习',
-            '技巧与观点': f'{time_range} AI最佳实践 技巧 教程 观点 prompt engineering',
+            'SaaS': f'{time_range} 企业级AI SaaS 软件 平台 工具 最新动态',
+            'To C 大模型产品': f'{time_range} 消费者端AI产品 ChatGPT Claude Gemini 大模型应用最新动态',
+            '其他': f'{time_range} AI行业 模型发布 论文 政策 AI Native转型 最新动态',
         }
         query = domain_queries.get(domain, f'{time_range} {domain} 最新动态')
 
@@ -552,15 +501,12 @@ class Analyzer:
         time_range = f'{seven_days_ago.strftime("%Y-%m-%d")}至{today.strftime("%Y-%m-%d")}'
 
         domain_queries = {
-            'OTA与旅游AI': f'{time_range} OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',
-            '用户研究AI': f'{time_range} 用户研究 UX Research social listening AI平台最新动态',
+            'OTA/旅游': f'{time_range} OTA旅游AI 酒店预订 机票 Booking Expedia 携程最新动态',
+            'Market Research': f'{time_range} 用户研究 UX Research social listening AI平台最新动态',
             '客服AI': f'{time_range} 客服AI customer service AI Cresta Decagon 智能客服最新动态',
-            'Startups': f'{time_range} AI创业公司 融资 产品发布 TechCrunch最新动态',
-            '模型发布/更新': f'{time_range} 大语言模型 发布 GPT Claude Gemini Llama 开源模型',
-            '产品发布/更新': f'{time_range} AI产品 工具 应用 发布 更新 OpenAI Anthropic',
-            '行业动态': f'{time_range} AI行业 政策 合作 市场 收购 投资',
-            '论文研究': f'{time_range} AI论文 研究 arxiv 深度学习 机器学习',
-            '技巧与观点': f'{time_range} AI最佳实践 技巧 教程 观点 prompt engineering',
+            'SaaS': f'{time_range} 企业级AI SaaS 软件 平台 工具 最新动态',
+            'To C 大模型产品': f'{time_range} 消费者端AI产品 ChatGPT Claude Gemini 大模型应用最新动态',
+            '其他': f'{time_range} AI行业 模型发布 论文 政策 AI Native转型 最新动态',
         }
         query = domain_queries.get(domain, f'{time_range} {domain} 最新动态')
 
@@ -625,10 +571,12 @@ class Analyzer:
 
         # 领域板块
         domain_sections = {
-            'OTA与旅游AI': '🏨 OTA与旅游AI',
-            '用户研究AI': '🔍 用户研究AI',
+            'OTA/旅游': '🏨 OTA/旅游',
+            'Market Research': '🔍 Market Research',
             '客服AI': '💬 客服AI',
-            '技巧与观点': '💡 技巧与观点',
+            'SaaS': '📊 SaaS',
+            'To C 大模型产品': '🤖 To C 大模型产品',
+            '其他': '📋 其他',
         }
 
         # 先输出领域板块
