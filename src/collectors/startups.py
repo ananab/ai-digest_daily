@@ -49,7 +49,7 @@ class StartupsCollector(BaseCollector):
                     # ProductHunt 需要关键词过滤
                     if needs_filter:
                         text = (title + ' ' + summary).lower()
-                        if not any(kw in text for kw in self.PH_KEYWORDS):
+                        if not any(kw in text for kw in self.FILTER_KEYWORDS):
                             continue
 
                     items.append(CollectedItem(
