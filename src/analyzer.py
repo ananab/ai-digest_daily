@@ -353,7 +353,7 @@ class Analyzer:
         filter_keywords = {
             'OTA/旅游': ['travel AI', 'hotel AI', 'booking AI', 'flight AI', '旅游AI', '酒店AI', '机票AI', 'OTA AI', 'Expedia AI', 'Booking.com AI', 'Airbnb AI', '携程AI', '飞猪AI', 'travel chatbot', 'travel agent', 'travel personalization'],
             'Market Research': ['user research', 'UX research', 'user study', 'usability', '用户研究', '用研', '深访', '用户体验研究', 'social listening', 'user insight', 'user interview', 'usability test', 'UX insight', '用户洞察AI', 'UX AI tool'],
-            '客服AI': ['customer service AI', 'customer support AI', 'service chatbot', 'support chatbot', '客服AI', '客服机器人', '智能客服', 'service agent AI', 'support agent AI', 'contact center AI', 'call center AI', 'service bot', 'support bot', 'CX AI assistant', 'service copilot', 'customer', 'support', 'help desk', 'ticket', 'inquiry', 'CX', 'customer experience', 'service automation', 'conversational AI', 'virtual agent', '客服', '咨询', '工单', '自动回复'],
+            '客服AI': ['customer service AI', 'customer support AI', 'service chatbot', 'support chatbot', '客服AI', '客服机器人', '智能客服', 'service agent AI', 'support agent AI', 'contact center AI', 'call center AI', 'service bot', 'support bot', 'CX AI assistant', 'service copilot', 'conversational AI', 'virtual agent'],
             'SaaS': ['SaaS', 'enterprise', 'platform', 'tool', 'API', 'automation', '企业级', 'B2B', 'software', 'AI platform', 'AI tool'],
             'To C 大模型产品': ['consumer', 'ChatGPT', 'Claude', 'Gemini', 'Copilot', 'AI assistant', 'AI chat', 'personal AI', 'consumer app'],
             '其他': ['AI', 'model', '论文', 'paper', 'startup', '政策', 'regulation', 'AI Native', 'AI organization'],
