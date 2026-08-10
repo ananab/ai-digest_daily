@@ -7,24 +7,29 @@ logger = logging.getLogger(__name__)
 
 
 class StartupsCollector(BaseCollector):
-    """Startups新闻采集 - TechCrunch AI, Newcomer, ProductHunt"""
+    """AI Startups新闻采集 - 广泛的AI创业公司来源"""
 
     name = 'startups'
 
-    # ProductHunt 过滤关键词（标题或摘要必须包含至少一个）
-    PH_KEYWORDS = [
+    # ProductHunt/Hacker News 过滤关键词（标题或摘要必须包含至少一个）
+    FILTER_KEYWORDS = [
         'ai', 'gpt', 'llm', 'agent', 'chatbot', 'copilot',
         'machine learning', 'startup', 'launch', 'funding',
         'saas', 'automation', 'assistant', 'generator',
+        'neural', 'deep learning', 'nlp', 'computer vision',
+        'series a', 'series b', 'series c', 'seed', 'raise',
     ]
 
     async def collect(self) -> list[CollectedItem]:
         items = []
 
+        # 广泛的AI创业公司来源
         feeds = [
             ('https://techcrunch.com/category/artificial-intelligence/feed/', 'TechCrunch AI', False),
             ('https://www.newcomer.co/feed', 'Newcomer', False),
             ('https://www.producthunt.com/feed', 'ProductHunt', True),  # 需要关键词过滤
+            ('https://venturebeat.com/category/ai/feed/', 'VentureBeat AI', False),
+            ('https://www.ycombinator.com/blog/feed', 'Y Combinator', True),  # 需要关键词过滤
         ]
 
         for feed_url, source, needs_filter in feeds:

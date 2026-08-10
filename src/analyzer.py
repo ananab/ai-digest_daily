@@ -175,10 +175,10 @@ class Analyzer:
 - 排除：模型发布（放模型发布）、创业公司产品首发融资（放Startups）
 
 **Startups**
-- 来源：TechCrunch AI、Newcomer、ProductHunt
+- 来源：TechCrunch AI、Newcomer、ProductHunt、VentureBeat AI、Y Combinator
 - 标记：【Startups】
 - 关键词：startup、创业、融资、funding、raises、Series A/B/C、seed、pre-seed、venture、stealth、valuation
-- **严格规则**：只包含未上市创业公司的新闻
+- **严格规则**：只包含未上市创业公司的新闻，涵盖所有AI领域（通用AI、垂直AI、基础设施、工具等）
 - 内容类型：融资（如"Simile raises $200M at $2B valuation"）、产品首发、市场扩张
 - **排序规则**：必须按融资金额从大到小排序（$200M > $100M > $50M > $10M等）
 - 排除：上市公司（Palantir、Microsoft等）的新闻、CEO个人观点、行业评论、实习/招聘信息汇总、工具列表、资源聚合页
