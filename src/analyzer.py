@@ -308,6 +308,11 @@ class Analyzer:
                 ('https://www.zendesk.com/blog/feed/', 'Zendesk'),
                 ('https://www.intercom.com/blog/feed/', 'Intercom'),
                 ('https://www.salesforce.com/blog/feed/', 'Salesforce Service Cloud'),
+                ('https://www.servicenow.com/blog/feed', 'ServiceNow'),
+                ('https://www.freshworks.com/blog/feed', 'Freshworks'),
+                ('https://www.helpscout.com/blog/feed', 'Help Scout'),
+                ('https://techcrunch.com/category/artificial-intelligence/feed/', 'TechCrunch AI'),
+                ('https://venturebeat.com/feed/?category_name=ai', 'VentureBeat AI'),
             ],
             'SaaS': [
                 ('https://techcrunch.com/feed/', 'TechCrunch'),
@@ -433,19 +438,12 @@ class Analyzer:
         return await self._llm_web_search(domain)
 
     async def _llm_web_search(self, domain: str) -> str:
-        """使用 LLM 联网搜索获取领域新闻（DeepSeek优先，Kimi fallback）"""
-        # 1. 优先尝试 DeepSeek web search
-        if self.deepseek_client:
-            result = await self._deepseek_web_search(domain)
-            if result:
-                return result
-            logger.info(f'{domain}: DeepSeek web search 失败，尝试 Kimi')
-
-        # 2. Kimi fallback
+        """使用 LLM 联网搜索获取领域新闻（只用 Kimi，DeepSeek 无联网能力）"""
+        # 只用 Kimi web search（有真实联网能力）
         if self.kimi_client:
             return await self._kimi_web_search(domain)
 
-        logger.error(f'{domain}: DeepSeek 和 Kimi 都不可用')
+        logger.error(f'{domain}: Kimi 不可用，无法进行联网搜索')
         return ''
 
     async def _deepseek_web_search(self, domain: str) -> str:
@@ -504,8 +502,17 @@ class Analyzer:
                     logger.warning(f'{domain}: DeepSeek 联网搜索返回空或拒绝')
                     return ''
 
+        except httpx.TimeoutException as e:
+            logger.error(f'{domain}: DeepSeek 联网搜索超时: {type(e).__name__}')
+            return ''
+        except httpx.ConnectError as e:
+            logger.error(f'{domain}: DeepSeek 联网搜索连接失败: {type(e).__name__}')
+            return ''
+        except httpx.HTTPStatusError as e:
+            logger.error(f'{domain}: DeepSeek 联网搜索HTTP错误: {e.response.status_code} - {e.response.text[:200]}')
+            return ''
         except Exception as e:
-            logger.error(f'{domain}: DeepSeek 联网搜索失败: {e}')
+            logger.error(f'{domain}: DeepSeek 联网搜索异常: {type(e).__name__}: {e}')
             return ''
 
     async def _kimi_web_search(self, domain: str) -> str:
