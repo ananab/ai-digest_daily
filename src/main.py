@@ -15,6 +15,15 @@ from .collectors.userweekly import UserWeeklyCollector
 from .collectors.dscout import DscoutCollector
 from .collectors.userinterviews import UserInterviewsCollector
 from .collectors.uxren import UxRenCollector
+from .collectors.nngroup import NNGroupCollector
+from .collectors.uxr_cl import UXRClCollector
+from .collectors.condens import CondensCollector
+from .collectors.dovetail import DovetailCollector
+from .collectors.miro_research import MiroResearchCollector
+from .collectors.userlytics import UserlyticsCollector
+from .collectors.loop11 import Loop11Collector
+from .collectors.delve_ai import DelveAICollector
+from .collectors.lyssna import LyssnaCollector
 from .collectors.cxtoday import CXTodayCollector
 from .collectors.cmswire import CMSWireCollector
 from .collectors.venturebeat_ai import VentureBeatAICollector
@@ -64,6 +73,15 @@ async def collect_all():
         DscoutCollector(),
         UserInterviewsCollector(),
         UxRenCollector(),
+        NNGroupCollector(),
+        UXRClCollector(),
+        CondensCollector(),
+        DovetailCollector(),
+        MiroResearchCollector(),
+        UserlyticsCollector(),
+        Loop11Collector(),
+        DelveAICollector(),
+        LyssnaCollector(),
         # 客服AI/CX
         CXTodayCollector(),
         CMSWireCollector(),

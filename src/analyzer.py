@@ -165,8 +165,9 @@ class Analyzer:
 ### 🔍 Market Research
 
 - 来源：UserWeekly、Dscout、User Interviews、UXRen
-- 关键词：用户研究、用研、深访、访谈、social listening、用户洞察、usability test、user interview、market research、consumer insight
-- **严格规则**：只包含「研究用户/市场」的AI方法和工具。排除：产品设计工具（如Figma）、产品功能介绍、一般UX/UI设计技巧
+- 关键词：user research、UX research、usability test、user interview、social listening、consumer insight、market research、用户研究、用研、深访、访谈、用户洞察
+- **严格规则**：只包含「研究用户/市场」的AI方法和工具（访谈、问卷、可用性测试、用户洞察平台）
+- **排除**：产品设计工具（Figma）、产品功能介绍、一般UX/UI技巧、**学术论文**（即使标题含"research"）、**技术基础设施**（LLM路由、模型训练等）、**纯技术benchmark**
 
 ---
 ### 🎧 客服AI
