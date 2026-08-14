@@ -76,18 +76,23 @@ class Processor:
 
         执行流程：
         1. 清洗：过滤无效数据
-        2. 日期过滤：硬性过滤旧内容
-        3. AI相关性过滤：硬性过滤非AI内容
-        4. 去重：基于标题相似度
-        5. 行业分类：按行业分类
+        2. 发布时间过滤：硬性过滤无日期的内容
+        3. 日期范围过滤：硬性过滤旧内容
+        4. AI相关性过滤：硬性过滤非AI内容
+        5. 去重：基于标题相似度
+        6. 行业分类：按行业分类
         """
         # 1. 清洗
         cleaned = self._clean(items)
         logger.info(f'清洗后: {len(cleaned)} 条 (原始 {len(items)} 条)')
 
-        # 2. 日期过滤（硬性）
-        date_filtered = self._filter_by_date(cleaned)
-        logger.info(f'日期过滤后: {len(date_filtered)} 条 (过滤 {len(cleaned) - len(date_filtered)} 条旧内容)')
+        # 2. 发布时间过滤（硬性）- 丢弃没有发布日期的内容
+        has_date = self._filter_by_has_date(cleaned)
+        logger.info(f'有发布时间: {len(has_date)} 条 (丢弃 {len(cleaned) - len(has_date)} 条无日期内容)')
+
+        # 3. 日期范围过滤（硬性）
+        date_filtered = self._filter_by_date(has_date)
+        logger.info(f'日期过滤后: {len(date_filtered)} 条 (过滤 {len(has_date) - len(date_filtered)} 条旧内容)')
 
         # 3. AI相关性过滤（硬性）
         ai_filtered = self._filter_by_ai_relevance(date_filtered)
@@ -235,51 +240,33 @@ class Processor:
 
         return categorized
 
+    def _filter_by_has_date(self, items: List[CollectedItem]) -> List[CollectedItem]:
+        """硬性过滤：只保留有发布日期的内容"""
+        filtered = []
+        for item in items:
+            # 优先使用 published_date 字段
+            if item.published_date:
+                filtered.append(item)
+            else:
+                # 尝试从文本中解析日期
+                parsed_date = self._try_parse_date_from_text(item)
+                if parsed_date:
+                    item.published_date = parsed_date
+                    filtered.append(item)
+                else:
+                    logger.debug(f'丢弃无日期内容: {item.title[:60]}')
+        return filtered
+
     def _filter_by_date(self, items: List[CollectedItem]) -> List[CollectedItem]:
         """硬性过滤旧内容（超过7天）"""
         filtered = []
         for item in items:
-            # 优先使用 published_date 字段
+            # 只处理有 published_date 的内容
             if item.published_date:
                 if item.published_date >= self.cutoff_date:
                     filtered.append(item)
                 else:
                     logger.debug(f'过滤旧内容: {item.title[:60]} ({item.published_date})')
-                continue
-
-            # 如果没有 published_date，尝试从文本中解析日期
-            parsed_date = self._try_parse_date_from_text(item)
-            if parsed_date:
-                item.published_date = parsed_date
-                if parsed_date >= self.cutoff_date:
-                    filtered.append(item)
-                else:
-                    logger.debug(f'过滤旧文本日期: {item.title[:60]} ({parsed_date})')
-                continue
-
-            # 没有日期信息，使用文本检测作为后备
-            text = f"{item.title} {item.summary}".lower()
-            current_year = datetime.now().year
-
-            # 检测标题或摘要中是否包含旧年份
-            old_years = [str(year) for year in range(2020, current_year)]
-            if any(year in text for year in old_years):
-                logger.debug(f'过滤旧年份: {item.title[:60]}')
-                continue
-
-            # 检测是否为年度报告/季度总结等
-            old_patterns = [
-                r'\b202[0-4]\b',
-                r'年度报告', r'年度总结', r'年度回顾',
-                r'季度报告', r'季度总结',
-                r'state of.*\d{4}',
-                r'\d{4} report', r'\d{4} summary', r'\d{4} review',
-            ]
-            if any(re.search(pattern, text, re.IGNORECASE) for pattern in old_patterns):
-                logger.debug(f'过滤年度报告: {item.title[:60]}')
-                continue
-
-            filtered.append(item)
 
         return filtered
 
