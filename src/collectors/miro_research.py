@@ -51,13 +51,16 @@ class MiroResearchCollector(BaseCollector):
                         if not url.startswith('http'):
                             url = f'https://miro.com{url}'
 
+                        # Extract published_date from article page
+                        published_date = await _extract_date_from_url(self.client, url)
+
                         items.append(CollectedItem(
                             title=title,
                             summary='',
                             url=url,
                             source=self.name,
                             category='news',
-                            published_date=datetime.now().strftime('%Y-%m-%d')
+                            published_date=published_date
                         ))
                     break
 
