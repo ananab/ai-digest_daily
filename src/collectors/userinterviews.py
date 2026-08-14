@@ -1,9 +1,23 @@
 import logging
+from datetime import datetime
 import feedparser
 from bs4 import BeautifulSoup
 from .base import BaseCollector, CollectedItem
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_date(entry) -> str:
+    """Parse date from feedparser entry"""
+    for date_field in ['published_parsed', 'updated_parsed', 'created_parsed']:
+        date_tuple = entry.get(date_field)
+        if date_tuple:
+            try:
+                dt = datetime(*date_tuple[:6])
+                return dt.strftime('%Y-%m-%d')
+            except:
+                pass
+    return ''
 
 
 class UserInterviewsCollector(BaseCollector):
@@ -40,6 +54,7 @@ class UserInterviewsCollector(BaseCollector):
                             url=link,
                             source='User Interviews',
                             category='news',
+                            published_date=_parse_date(entry),
                         ))
                     logger.info(f'UserInterviews RSS: 采集到 {len(items)} 条新闻')
                     return items

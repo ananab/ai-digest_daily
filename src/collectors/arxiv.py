@@ -1,5 +1,6 @@
 import logging
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from .base import BaseCollector, CollectedItem
 
 logger = logging.getLogger(__name__)
@@ -54,12 +55,25 @@ class ArxivCollector(BaseCollector):
                 if len(summary) > 300:
                     summary = summary[:300] + '...'
 
+                # 提取发布日期
+                published_date = ''
+                for date_tag in ['atom:published', 'atom:updated']:
+                    date_str = entry.findtext(date_tag, '', ns)
+                    if date_str:
+                        try:
+                            dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                            published_date = dt.strftime('%Y-%m-%d')
+                            break
+                        except (ValueError, AttributeError):
+                            pass
+
                 items.append(CollectedItem(
                     title=title,
                     summary=summary,
                     url=link,
                     source='Arxiv',
                     category='paper',
+                    published_date=published_date,
                     metadata={'authors': ', '.join(authors)},
                 ))
 

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from .base import BaseCollector, CollectedItem
 
 logger = logging.getLogger(__name__)
@@ -65,12 +66,23 @@ class HackerNewsCollector(BaseCollector):
             if not is_ai_related and score < 100:
                 return None
 
+            # 提取发布日期（HN API 返回 unix timestamp）
+            published_date = ''
+            timestamp = story.get('time')
+            if timestamp:
+                try:
+                    dt = datetime.fromtimestamp(timestamp)
+                    published_date = dt.strftime('%Y-%m-%d')
+                except (ValueError, OSError):
+                    pass
+
             return CollectedItem(
                 title=title,
                 summary=f'⬆️ {score} points · {story.get("descendants", 0)} comments',
                 url=url,
                 source='Hacker News',
                 category='discussion',
+                published_date=published_date,
                 metadata={'score': score, 'comments': story.get('descendants', 0)},
             )
         except Exception:

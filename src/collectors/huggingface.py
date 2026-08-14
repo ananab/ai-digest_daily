@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from .base import BaseCollector, CollectedItem
 
 logger = logging.getLogger(__name__)
@@ -32,12 +33,26 @@ class HuggingFaceCollector(BaseCollector):
                     a.get('name', '') for a in authors[:3]
                 ) if isinstance(authors, list) else ''
 
+                # 提取发布日期
+                published_date = ''
+                for date_key in ['publishedAt', 'published_at', 'date']:
+                    date_val = paper_info.get(date_key, '') or paper.get(date_key, '')
+                    if date_val:
+                        try:
+                            if isinstance(date_val, str):
+                                dt = datetime.fromisoformat(date_val.replace('Z', '+00:00'))
+                                published_date = dt.strftime('%Y-%m-%d')
+                                break
+                        except (ValueError, AttributeError):
+                            pass
+
                 items.append(CollectedItem(
                     title=title,
                     summary=summary,
                     url=url,
                     source='Hugging Face',
                     category='paper',
+                    published_date=published_date,
                     metadata={'authors': author_names},
                 ))
 

@@ -1,8 +1,41 @@
 import logging
+from datetime import datetime
 from bs4 import BeautifulSoup
 from .base import BaseCollector, CollectedItem
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_date_from_element(element) -> str:
+    """Try to extract date from HTML element"""
+    if not element:
+        return ''
+
+    # Try common date attributes
+    for attr in ['datetime', 'date', 'data-date', 'data-timestamp']:
+        date_str = element.get(attr, '')
+        if date_str:
+            try:
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                return dt.strftime('%Y-%m-%d')
+            except (ValueError, AttributeError):
+                pass
+
+    # Try parsing from text
+    date_text = element.get_text(strip=True)
+    if date_text and len(date_text) < 50:
+        try:
+            # Try common date formats
+            for fmt in ['%Y-%m-%d', '%B %d, %Y', '%d %B %Y', '%m/%d/%Y']:
+                try:
+                    dt = datetime.strptime(date_text, fmt)
+                    return dt.strftime('%Y-%m-%d')
+                except ValueError:
+                    continue
+        except:
+            pass
+
+    return ''
 
 
 class AIHotCollector(BaseCollector):
@@ -32,12 +65,22 @@ class AIHotCollector(BaseCollector):
                 summary_el = article.select_one('p, .summary, .desc, .description')
                 summary = summary_el.get_text(strip=True) if summary_el else ''
 
+                # Try to extract date
+                published_date = ''
+                for date_selector in ['time', '.date', '.time', '[class*="date"]', '[class*="time"]']:
+                    date_el = article.select_one(date_selector)
+                    if date_el:
+                        published_date = _parse_date_from_element(date_el)
+                        if published_date:
+                            break
+
                 items.append(CollectedItem(
                     title=title,
                     summary=summary,
                     url=link,
                     source='AI热点聚合',
                     category='news',
+                    published_date=published_date,
                 ))
 
             if not items:

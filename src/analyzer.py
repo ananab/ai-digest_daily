@@ -77,7 +77,7 @@ class Analyzer:
             }.get(category, category)
 
             items_text = '\n'.join([
-                f'{i+1}. {item.title}\n   {item.summary}\n   链接: {item.url}'
+                f'{i+1}. {item.title}\n   {item.summary}\n   链接: {item.url}\n   发布时间: {item.published_date or "未知"}'
                 for i, item in enumerate(items)
             ])
 
@@ -251,9 +251,11 @@ class Analyzer:
 
 - **[中文标题](url)** （English Title）
   *摘要内容...*
+  `发布时间: 2026-08-14`
 
 - **[中文标题](url)** （English Title）
   *摘要内容...*
+  `发布时间: 2026-08-13`
 
 ---
 
@@ -261,10 +263,11 @@ class Analyzer:
 
 - **[中文标题](url)** （English Title）
   *摘要内容...*
+  `发布时间: 2026-08-12`
 
 ---
 
-以此类推。每个板块之间用 `---` 分隔。"""
+以此类推。每个板块之间用 `---` 分隔。每条新闻末尾必须标注发布时间（从输入数据的"发布时间"字段获取）。"""
 
         report_text = None
         llm_used = None

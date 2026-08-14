@@ -2,45 +2,168 @@ import logging
 import re
 from typing import List
 from difflib import SequenceMatcher
-from datetime import datetime
+from datetime import datetime, timedelta
 from .collectors.base import CollectedItem
 
 logger = logging.getLogger(__name__)
 
 
 class Processor:
-    """数据处理器：去重、清洗、分类"""
+    """数据处理器：去重、清洗、分类、硬性过滤"""
+
+    # AI 相关关键词（必须包含至少一个）
+    AI_KEYWORDS = [
+        # 通用 AI 术语
+        r'\bAI\b', r'\bA\.I\.\b', r'\bartificial intelligence\b', r'\bmachine learning\b', r'\bML\b',
+        r'\bdeep learning\b', r'\bDL\b', r'\bneural network\b', r'\bLLM\b', r'\bAGI\b',
+        # 大模型相关
+        r'\bGPT\b', r'\bChatGPT\b', r'\bClaude\b', r'\bGemini\b', r'\bLlama\b', r'\bPaLM\b',
+        r'\blarge language model\b', r'\bfoundation model\b', r'\bgenerative AI\b',
+        # AI 应用
+        r'\bNLP\b', r'\bnatural language processing\b', r'\bcomputer vision\b', r'\bCV\b',
+        r'\bagent\b', r'\bchatbot\b', r'\bcopilot\b', r'\bAI assistant\b',
+        # 中文关键词
+        r'人工智能', r'机器学习', r'深度学习', r'大模型', r'大语言模型',
+        r'神经网络', r'智能', r'AI', r'机器人',
+        # 垂直领域 AI
+        r'AI客服', r'AI助手', r'AI客服机器人', r'智能客服',
+        r'user research.*AI', r'AI.*user research',
+        r'OTA.*AI', r'AI.*OTA', r'travel.*AI', r'AI.*travel',
+        r'AI.*SaaS', r'SaaS.*AI', r'AI platform', r'AI tool',
+        # 技术术语
+        r'transformer', r'attention mechanism', r'token', r'prompt', r'fine-tune',
+        r'RAG', r'vector database', r'embedding', r'inference',
+    ]
+
+    # 行业分类关键词
+    INDUSTRY_KEYWORDS = {
+        'OTA/旅游': [
+            r'\bOTA\b', r'\btravel\b', r'\bhotel\b', r'\bflight\b', r'\bbooking\b',
+            r'\bExpedia\b', r'\bBooking\.com\b', r'\bAirbnb\b', r'\bTrip\.com\b',
+            r'旅游', r'酒店', r'机票', r'预订', r'携程', r'飞猪', r'去哪儿',
+            r'Skift', r'PhocusWire', r'环球旅讯',
+        ],
+        'Market Research': [
+            r'user research', r'UX research', r'usability', r'user interview',
+            r'social listening', r'consumer insight', r'market research',
+            r'用户研究', r'用研', r'深访', r'访谈', r'用户洞察',
+            r'UserWeekly', r'Dscout', r'User Interviews',
+        ],
+        '客服AI': [
+            r'customer service', r'contact center', r'call center',
+            r'AI客服', r'客服机器人', r'智能客服', r'AI assistant',
+            r'Cresta', r'Decagon', r'Zendesk', r'Intercom',
+        ],
+        'SaaS': [
+            r'SaaS', r'enterprise', r'B2B', r'AI platform', r'AI tool',
+            r'Salesforce', r'HubSpot', r'Zoho', r'Notion',
+            r'企业级', r'企业软件', r'企业服务',
+        ],
+        'To C 大模型产品': [
+            r'ChatGPT', r'Claude', r'Gemini', r'Copilot',
+            r'consumer.*AI', r'AI.*consumer', r'AI app',
+            r'消费者', r'个人AI', r'AI应用',
+        ],
+    }
 
     def __init__(self, similarity_threshold: float = 0.7):
         self.similarity_threshold = similarity_threshold
+        self.cutoff_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
 
     def process(self, items: List[CollectedItem]) -> dict[str, List[CollectedItem]]:
         """
-        处理采集数据
+        处理采集数据（带硬性过滤）
 
-        Args:
-            items: 原始采集数据列表
-
-        Returns:
-            按类别分组的数据字典 {'news': [...], 'paper': [...], 'repo': [...], 'discussion': [...]}
+        执行流程：
+        1. 清洗：过滤无效数据
+        2. 日期过滤：硬性过滤旧内容
+        3. AI相关性过滤：硬性过滤非AI内容
+        4. 去重：基于标题相似度
+        5. 行业分类：按行业分类
         """
-        # 1. 清洗：过滤无效数据
+        # 1. 清洗
         cleaned = self._clean(items)
         logger.info(f'清洗后: {len(cleaned)} 条 (原始 {len(items)} 条)')
 
-        # 2. 日期过滤：过滤掉旧内容
+        # 2. 日期过滤（硬性）
         date_filtered = self._filter_by_date(cleaned)
-        logger.info(f'日期过滤后: {len(date_filtered)} 条 (清洗后 {len(cleaned)} 条)')
+        logger.info(f'日期过滤后: {len(date_filtered)} 条 (过滤 {len(cleaned) - len(date_filtered)} 条旧内容)')
 
-        # 3. 去重：基于标题相似度
-        deduplicated = self._deduplicate(date_filtered)
+        # 3. AI相关性过滤（硬性）
+        ai_filtered = self._filter_by_ai_relevance(date_filtered)
+        logger.info(f'AI相关性过滤后: {len(ai_filtered)} 条 (过滤 {len(date_filtered) - len(ai_filtered)} 条非AI内容)')
+
+        # 4. 去重
+        deduplicated = self._deduplicate(ai_filtered)
         logger.info(f'去重后: {len(deduplicated)} 条')
 
-        # 4. 分类
-        categorized = self._categorize(deduplicated)
+        # 5. 行业分类
+        categorized = self._categorize_by_industry(deduplicated)
 
         for category, items_list in categorized.items():
             logger.info(f'  {category}: {len(items_list)} 条')
+
+        return categorized
+
+    def _is_ai_related(self, item: CollectedItem) -> bool:
+        """检查内容是否与AI相关（硬性规则）"""
+        text = f"{item.title} {item.summary}".lower()
+
+        # 检查是否包含至少一个AI关键词
+        for pattern in self.AI_KEYWORDS:
+            if re.search(pattern, text, re.IGNORECASE):
+                return True
+
+        return False
+
+    def _filter_by_ai_relevance(self, items: List[CollectedItem]) -> List[CollectedItem]:
+        """硬性过滤非AI内容"""
+        filtered = [item for item in items if self._is_ai_related(item)]
+
+        # 记录被过滤的内容（用于调试）
+        filtered_out = [item for item in items if not self._is_ai_related(item)]
+        if filtered_out:
+            logger.debug(f'过滤的非AI内容示例:')
+            for item in filtered_out[:3]:
+                logger.debug(f'  - {item.title[:80]}')
+
+        return filtered
+
+    def _detect_industry(self, item: CollectedItem) -> str:
+        """检测内容所属行业"""
+        text = f"{item.title} {item.summary}".lower()
+
+        # 按优先级检测行业
+        for industry, keywords in self.INDUSTRY_KEYWORDS.items():
+            for pattern in keywords:
+                if re.search(pattern, text, re.IGNORECASE):
+                    return industry
+
+        return '其他'
+
+    def _categorize_by_industry(self, items: List[CollectedItem]) -> dict[str, List[CollectedItem]]:
+        """按行业分类（硬性规则）"""
+        categorized = {
+            'OTA/旅游': [],
+            'Market Research': [],
+            '客服AI': [],
+            'SaaS': [],
+            'To C 大模型产品': [],
+            '其他': [],
+        }
+
+        for item in items:
+            # 根据原始 category 映射到行业
+            if item.category in ['news', 'startups']:
+                industry = self._detect_industry(item)
+            elif item.category == 'paper':
+                industry = '其他'  # 论文默认放"其他"
+            elif item.category == 'repo':
+                industry = 'SaaS'  # 开源项目默认放"SaaS"
+            else:
+                industry = self._detect_industry(item)
+
+            categorized[industry].append(item)
 
         return categorized
 
@@ -66,42 +189,6 @@ class Processor:
             cleaned.append(item)
 
         return cleaned
-
-    def _filter_by_date(self, items: List[CollectedItem]) -> List[CollectedItem]:
-        """过滤掉旧内容（超过7天的内容）"""
-        now = datetime.now()
-        current_year = now.year
-        current_month = now.month
-        current_day = now.day
-
-        filtered = []
-        for item in items:
-            text = f"{item.title} {item.summary}".lower()
-
-            # 检测标题或摘要中是否包含旧年份
-            old_years = [str(year) for year in range(2020, current_year)]
-            if any(year in text for year in old_years):
-                continue
-
-            # 检测是否为年度报告/季度总结等
-            old_patterns = [
-                r'\b202[0-4]\b',  # 2020-2024
-                r'年度报告',
-                r'年度总结',
-                r'年度回顾',
-                r'季度报告',
-                r'季度总结',
-                r'state of.*\d{4}',
-                r'\d{4} report',
-                r'\d{4} summary',
-                r'\d{4} review',
-            ]
-            if any(re.search(pattern, text, re.IGNORECASE) for pattern in old_patterns):
-                continue
-
-            filtered.append(item)
-
-        return filtered
 
     def _deduplicate(self, items: List[CollectedItem]) -> List[CollectedItem]:
         """基于标题相似度去重"""
@@ -147,3 +234,92 @@ class Processor:
                 categorized['news'].append(item)
 
         return categorized
+
+    def _filter_by_date(self, items: List[CollectedItem]) -> List[CollectedItem]:
+        """硬性过滤旧内容（超过7天）"""
+        filtered = []
+        for item in items:
+            # 优先使用 published_date 字段
+            if item.published_date:
+                if item.published_date >= self.cutoff_date:
+                    filtered.append(item)
+                else:
+                    logger.debug(f'过滤旧内容: {item.title[:60]} ({item.published_date})')
+                continue
+
+            # 如果没有 published_date，尝试从文本中解析日期
+            parsed_date = self._try_parse_date_from_text(item)
+            if parsed_date:
+                item.published_date = parsed_date
+                if parsed_date >= self.cutoff_date:
+                    filtered.append(item)
+                else:
+                    logger.debug(f'过滤旧文本日期: {item.title[:60]} ({parsed_date})')
+                continue
+
+            # 没有日期信息，使用文本检测作为后备
+            text = f"{item.title} {item.summary}".lower()
+            current_year = datetime.now().year
+
+            # 检测标题或摘要中是否包含旧年份
+            old_years = [str(year) for year in range(2020, current_year)]
+            if any(year in text for year in old_years):
+                logger.debug(f'过滤旧年份: {item.title[:60]}')
+                continue
+
+            # 检测是否为年度报告/季度总结等
+            old_patterns = [
+                r'\b202[0-4]\b',
+                r'年度报告', r'年度总结', r'年度回顾',
+                r'季度报告', r'季度总结',
+                r'state of.*\d{4}',
+                r'\d{4} report', r'\d{4} summary', r'\d{4} review',
+            ]
+            if any(re.search(pattern, text, re.IGNORECASE) for pattern in old_patterns):
+                logger.debug(f'过滤年度报告: {item.title[:60]}')
+                continue
+
+            filtered.append(item)
+
+        return filtered
+
+    def _try_parse_date_from_text(self, item: CollectedItem) -> str:
+        """尝试从标题或摘要中解析日期"""
+        text = f"{item.title} {item.summary}"
+
+        # 匹配 "24 Oct 2025", "Jan 15, 2024", "15 Mar 2026" 等格式
+        month_names = {
+            'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+            'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
+            'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12',
+        }
+
+        patterns = [
+            # "24 Oct 2025" / "15 Mar 2026"
+            r'(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(\d{4})',
+            # "Oct 24, 2025" / "Mar 15, 2026"
+            r'(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(\d{1,2}),?\s+(\d{4})',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                groups = match.groups()
+                try:
+                    if len(groups[0]) <= 2 and groups[0].isdigit():
+                        # "24 Oct 2025" format
+                        day, month_str, year = groups
+                        month = month_names.get(month_str[:3].lower(), '01')
+                    else:
+                        # "Oct 24, 2025" format
+                        month_str, day, year = groups
+                        month = month_names.get(month_str[:3].lower(), '01')
+
+                    date_str = f"{year}-{month}-{day.zfill(2)}"
+                    # 验证日期格式
+                    datetime.strptime(date_str, '%Y-%m-%d')
+                    return date_str
+                except (ValueError, KeyError):
+                    continue
+
+        return ''

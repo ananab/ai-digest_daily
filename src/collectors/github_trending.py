@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from bs4 import BeautifulSoup
 from .base import BaseCollector, CollectedItem
 
@@ -48,12 +49,16 @@ class GitHubTrendingCollector(BaseCollector):
                 stars_el = article.select_one('a.Link--muted.d-inline-block')
                 total_stars = stars_el.get_text(strip=True).replace(',', '') if stars_el else ''
 
+                # GitHub trending shows daily date, use today's date
+                published_date = datetime.now().strftime('%Y-%m-%d')
+
                 items.append(CollectedItem(
                     title=f'{owner}/{repo_name}' if owner else repo_name,
                     summary=description,
                     url=url,
                     source='GitHub Trending',
                     category='repo',
+                    published_date=published_date,
                     metadata={
                         'stars_today': stars_today,
                         'total_stars': total_stars,

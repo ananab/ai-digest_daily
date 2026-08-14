@@ -17,6 +17,7 @@ class CollectedItem:
     source: str = ''
     category: Literal['news', 'paper', 'repo', 'discussion', 'startups'] = 'news'
     metadata: dict = field(default_factory=dict)
+    published_date: str = ''
 
 
 class BaseCollector(ABC):
