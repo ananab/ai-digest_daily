@@ -105,6 +105,13 @@ class Processor:
         # 5. 行业分类
         categorized = self._categorize_by_industry(deduplicated)
 
+        # 调试日志：检查 UserWeekly 文章的分类
+        userweekly_items = [item for item in deduplicated if item.source == 'User Weekly']
+        if userweekly_items:
+            logger.info(f'UserWeekly 文章分类调试:')
+            for item in userweekly_items:
+                logger.info(f'  - {item.title[:60]} -> {item.published_date}')
+
         for category, items_list in categorized.items():
             logger.info(f'  {category}: {len(items_list)} 条')
 

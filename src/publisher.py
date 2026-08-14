@@ -63,6 +63,9 @@ class FeishuPublisher:
         """构建飞书消息卡片"""
         report_text = report.get('report', '')
         llm_used = report.get('llm_used', None)
+
+        # 添加调试日志：输出报告内容的前500字符
+        logger.info(f'飞书报告内容预览:\n{report_text[:500]}...')
         today = date.today()
         week_ago = today - timedelta(days=7)
         date_range = f"{week_ago.strftime('%m/%d')}-{today.strftime('%m/%d')}"
