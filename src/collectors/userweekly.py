@@ -60,7 +60,7 @@ class UserWeeklyCollector(BaseCollector):
             except Exception as e:
                 logger.debug(f'UserWeekly RSS {rss_url} 失败: {e}')
 
-        # Fallback: HTML scraping
+        # Fallback: HTML scraping with article page visit
         try:
             response = await self.client.get('https://userweekly.com/')
             response.raise_for_status()
@@ -84,12 +84,72 @@ class UserWeeklyCollector(BaseCollector):
                 if len(summary) > 300:
                     summary = summary[:300] + '...'
 
+                # 访问文章页面提取日期
+                published_date = ''
+                try:
+                    article_response = await self.client.get(link)
+                    if article_response.status_code == 200:
+                        article_soup = BeautifulSoup(article_response.text, 'lxml')
+
+                        # 查找 time 标签
+                        time_el = article_soup.find('time')
+                        if time_el:
+                            datetime_str = time_el.get('datetime')
+                            if datetime_str:
+                                try:
+                                    dt = datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+                                    published_date = dt.strftime('%Y-%m-%d')
+                                except:
+                                    pass
+
+                        # 查找 meta 标签
+                        if not published_date:
+                            for meta in article_soup.find_all('meta'):
+                                prop = meta.get('property', '').lower()
+                                if 'date' in prop or 'time' in prop:
+                                    content = meta.get('content', '')
+                                    if content and len(content) >= 10:
+                                        try:
+                                            dt = datetime.fromisoformat(content.replace('Z', '+00:00'))
+                                            published_date = dt.strftime('%Y-%m-%d')
+                                            break
+                                        except:
+                                            pass
+
+                        # 从页面文本提取日期
+                        if not published_date:
+                            import re
+                            text = article_soup.get_text()
+                            date_patterns = [
+                                r'(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4})',
+                                r'((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4})',
+                                r'(\d{4}-\d{2}-\d{2})',
+                            ]
+                            for pattern in date_patterns:
+                                match = re.search(pattern, text, re.IGNORECASE)
+                                if match:
+                                    date_str = match.group(1)
+                                    try:
+                                        if '-' in date_str:
+                                            dt = datetime.strptime(date_str, '%Y-%m-%d')
+                                        elif ',' in date_str:
+                                            dt = datetime.strptime(date_str, '%B %d, %Y')
+                                        else:
+                                            dt = datetime.strptime(date_str, '%d %B %Y')
+                                        published_date = dt.strftime('%Y-%m-%d')
+                                        break
+                                    except:
+                                        pass
+                except Exception as e:
+                    logger.debug(f'UserWeekly 访问文章页面失败: {link}, 错误: {e}')
+
                 items.append(CollectedItem(
                     title=title,
                     summary=summary,
                     url=link,
                     source='User Weekly',
                     category='news',
+                    published_date=published_date,
                 ))
 
             logger.info(f'UserWeekly HTML: 采集到 {len(items)} 条新闻')
