@@ -68,11 +68,12 @@ async def collect_all():
         SkiftCollector(),
         PhocusWireCollector(),
         HuanqiuTravelCollector(),
-        # 用户研究
+        # 用户研究 (主要来源)
         UserWeeklyCollector(),
         DscoutCollector(),
         UserInterviewsCollector(),
         UxRenCollector(),
+        # 用户研究 (备选来源 - Market Research)
         NNGroupCollector(),
         UXRClCollector(),
         CondensCollector(),

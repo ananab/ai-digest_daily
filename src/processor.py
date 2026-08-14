@@ -145,9 +145,25 @@ class Processor:
 
     def _detect_industry(self, item: CollectedItem) -> str:
         """检测内容所属行业"""
-        text = f"{item.title} {item.summary}".lower()
+        # 首先根据 source 判断
+        source_market_research = ['NNGroup', 'UXRCl', 'Condens', 'Dovetail', 'MiroResearch',
+                                'Userlytics', 'Loop11', 'DelveAI', 'Lyssna',
+                                'UserWeekly', 'Dscout', 'UserInterviews', 'UxRen']
+        if item.source in source_market_research:
+            return 'Market Research'
 
-        # 按优先级检测行业
+        # OTA/旅游 来源
+        ota_sources = ['Skift', 'PhocusWire', 'HuanqiuTravel']
+        if item.source in ota_sources:
+            return 'OTA/旅游'
+
+        # 客服AI 来源
+        cs_sources = ['CXToday', 'CMSWire']
+        if item.source in cs_sources:
+            return '客服AI'
+
+        # 基于关键词判断
+        text = f"{item.title} {item.summary}".lower()
         for industry, keywords in self.INDUSTRY_KEYWORDS.items():
             for pattern in keywords:
                 if re.search(pattern, text, re.IGNORECASE):
