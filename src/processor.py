@@ -68,7 +68,9 @@ class Processor:
 
     def __init__(self, similarity_threshold: float = 0.7):
         self.similarity_threshold = similarity_threshold
-        self.cutoff_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        today = datetime.now()
+        self.cutoff_date = (today - timedelta(days=7)).strftime('%Y-%m-%d')
+        self.max_date = (today - timedelta(days=1)).strftime('%Y-%m-%d')  # T-1 (exclude today)
 
     def process(self, items: List[CollectedItem]) -> dict[str, List[CollectedItem]]:
         """
@@ -265,15 +267,15 @@ class Processor:
         return filtered
 
     def _filter_by_date(self, items: List[CollectedItem]) -> List[CollectedItem]:
-        """硬性过滤旧内容（超过7天）"""
+        """硬性过滤旧内容（超过7天）和今天的内容"""
         filtered = []
         for item in items:
             # 只处理有 published_date 的内容
             if item.published_date:
-                if item.published_date >= self.cutoff_date:
+                if self.cutoff_date <= item.published_date <= self.max_date:
                     filtered.append(item)
                 else:
-                    logger.debug(f'过滤旧内容: {item.title[:60]} ({item.published_date})')
+                    logger.debug(f'过滤旧内容或今天内容: {item.title[:60]} ({item.published_date})')
 
         return filtered
 
