@@ -1,9 +1,67 @@
 import logging
 import re
 from datetime import datetime
+from bs4 import BeautifulSoup
 from .base import BaseCollector, CollectedItem
 
 logger = logging.getLogger(__name__)
+
+
+async def _extract_date_from_url(client, url: str) -> str:
+    """Visit article page and extract published date"""
+    try:
+        response = await client.get(url)
+        if response.status_code != 200:
+            return ''
+        soup = BeautifulSoup(response.text, 'lxml')
+
+        # Check time tag
+        time_el = soup.find('time')
+        if time_el:
+            datetime_str = time_el.get('datetime')
+            if datetime_str:
+                try:
+                    dt = datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+                    return dt.strftime('%Y-%m-%d')
+                except:
+                    pass
+
+        # Check meta tags
+        for meta in soup.find_all('meta'):
+            prop = meta.get('property', '').lower()
+            if 'date' in prop or 'time' in prop:
+                content = meta.get('content', '')
+                if content and len(content) >= 10:
+                    try:
+                        dt = datetime.fromisoformat(content.replace('Z', '+00:00'))
+                        return dt.strftime('%Y-%m-%d')
+                    except:
+                        pass
+
+        # Extract from page text
+        text = soup.get_text()
+        date_patterns = [
+            r'(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4})',
+            r'((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4})',
+            r'(\d{4}-\d{2}-\d{2})',
+        ]
+        for pattern in date_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                date_str = match.group(1)
+                try:
+                    if '-' in date_str:
+                        dt = datetime.strptime(date_str, '%Y-%m-%d')
+                    elif ',' in date_str:
+                        dt = datetime.strptime(date_str, '%B %d, %Y')
+                    else:
+                        dt = datetime.strptime(date_str, '%d %B %Y')
+                    return dt.strftime('%Y-%m-%d')
+                except:
+                    pass
+    except Exception:
+        pass
+    return ''
 
 
 class UserlyticsCollector(BaseCollector):
