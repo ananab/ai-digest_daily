@@ -235,24 +235,32 @@ class Analyzer:
 
 **输出格式要求（必须严格遵守）**：
 
-每个板块使用以下格式：
+⚠️ **飞书卡片 Markdown 限制**：
+- ❌ 不支持 `###` 标题语法
+- ❌ 不支持 `>` 引用块
+- ✅ 支持 `**bold**` 加粗
+- ✅ 支持 `- list` 无序列表
+- ✅ 支持 `[link](url)` 链接
+- ✅ 支持 `---` 分隔线
+
+每个板块使用以下格式（使用飞书支持的语法）：
 
 ---
 
-### 🏨 OTA/旅游
+**🏨 OTA/旅游**
 
-**1.** [中文标题](url) （English Title）
-> 摘要内容...
+- **[中文标题](url)** （English Title）
+  *摘要内容...*
 
-**2.** [中文标题](url) （English Title）
-> 摘要内容...
+- **[中文标题](url)** （English Title）
+  *摘要内容...*
 
 ---
 
-### 🔍 Market Research
+**🔍 Market Research**
 
-**1.** [中文标题](url) （English Title）
-> 摘要内容...
+- **[中文标题](url)** （English Title）
+  *摘要内容...*
 
 ---
 
