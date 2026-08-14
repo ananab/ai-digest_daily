@@ -1,6 +1,8 @@
 import logging
+import re
 from typing import List
 from difflib import SequenceMatcher
+from datetime import datetime
 from .collectors.base import CollectedItem
 
 logger = logging.getLogger(__name__)
@@ -26,11 +28,15 @@ class Processor:
         cleaned = self._clean(items)
         logger.info(f'清洗后: {len(cleaned)} 条 (原始 {len(items)} 条)')
 
-        # 2. 去重：基于标题相似度
-        deduplicated = self._deduplicate(cleaned)
+        # 2. 日期过滤：过滤掉旧内容
+        date_filtered = self._filter_by_date(cleaned)
+        logger.info(f'日期过滤后: {len(date_filtered)} 条 (清洗后 {len(cleaned)} 条)')
+
+        # 3. 去重：基于标题相似度
+        deduplicated = self._deduplicate(date_filtered)
         logger.info(f'去重后: {len(deduplicated)} 条')
 
-        # 3. 分类
+        # 4. 分类
         categorized = self._categorize(deduplicated)
 
         for category, items_list in categorized.items():
@@ -60,6 +66,42 @@ class Processor:
             cleaned.append(item)
 
         return cleaned
+
+    def _filter_by_date(self, items: List[CollectedItem]) -> List[CollectedItem]:
+        """过滤掉旧内容（超过7天的内容）"""
+        now = datetime.now()
+        current_year = now.year
+        current_month = now.month
+        current_day = now.day
+
+        filtered = []
+        for item in items:
+            text = f"{item.title} {item.summary}".lower()
+
+            # 检测标题或摘要中是否包含旧年份
+            old_years = [str(year) for year in range(2020, current_year)]
+            if any(year in text for year in old_years):
+                continue
+
+            # 检测是否为年度报告/季度总结等
+            old_patterns = [
+                r'\b202[0-4]\b',  # 2020-2024
+                r'年度报告',
+                r'年度总结',
+                r'年度回顾',
+                r'季度报告',
+                r'季度总结',
+                r'state of.*\d{4}',
+                r'\d{4} report',
+                r'\d{4} summary',
+                r'\d{4} review',
+            ]
+            if any(re.search(pattern, text, re.IGNORECASE) for pattern in old_patterns):
+                continue
+
+            filtered.append(item)
+
+        return filtered
 
     def _deduplicate(self, items: List[CollectedItem]) -> List[CollectedItem]:
         """基于标题相似度去重"""

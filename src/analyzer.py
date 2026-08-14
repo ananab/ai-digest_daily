@@ -114,9 +114,14 @@ class Analyzer:
    - 每条新闻必须明确提及AI、人工智能、机器学习、大模型、GPT、Claude、LLM、Agent、Chatbot等AI技术关键词
    - 纯商业/财务/战略新闻，如果不涉及AI技术应用，**一律排除**
 
-2. **所有新闻必须发布于 {date_range}**
-   - 严格排除超出此时间范围的内容
-   - 年度报告、季度总结等周期性内容，如果不是本周发布，一律排除
+2. **🔴 严格的日期过滤（最高优先级）**
+   - 只接受 {date_range} 期间发布的内容
+   - 如果标题或摘要中包含旧年份（如"2025"、"2024"、"2023"），**必须排除**
+   - 年度报告、季度总结、回顾性文章，除非明确标注为本周发布，**一律排除**
+   - 示例：
+     ❌ 排除："2025用户研究行业现状报告"（标题含2025，是年度报告）
+     ❌ 排除："2024年AI行业回顾"（回顾性文章）
+     ✅ 保留：本周发布的新产品公告、融资消息、技术更新
 
 3. **特别关注**：
    - 大企业如何向AI Native转型（如传统企业引入AI改造业务流程）
@@ -130,7 +135,9 @@ class Analyzer:
 
 请严格按以下格式生成报告（使用中文）：
 
-## 🔍 本周速览
+---
+## ✨ 本周速览
+
 （你是科技媒体编辑，请根据以上素材写一段「本周速览」总结。要求：
 - 5-8 条要点，每条一行，以「• 」开头
 - **简洁专业的表达**，清晰易读，保持正式风格
@@ -140,50 +147,60 @@ class Analyzer:
 - 不要输出开场白或结尾寒暄
 - 总字数控制在 300 字以内）
 
+---
 ## 📎 相关链接
 
 请按以下规则将内容分类到对应板块（每个板块都必须填写）：
 
-**OTA/旅游**
+---
+### 🏨 OTA/旅游
+
 - 来源：Skift、PhocusWire、环球旅讯
-- 标记：【OTA与旅游AI】
 - 关键词：酒店、机票、预订、旅游、OTA、Booking、Expedia、Airbnb、携程、飞猪、travel AI
 - **严格规则**：只包含与AI直接相关的旅游行业新闻。排除纯旅游商业新闻
 - **优先包含**：OTA行业的AI Native转型案例、OTA CEO的AI相关发言、OTA创业公司融资
 
-**Market Research**
+---
+### 🔍 Market Research
+
 - 来源：UserWeekly、Dscout、User Interviews、UXRen
-- 标记：【Market Research】
 - 关键词：用户研究、用研、深访、访谈、social listening、用户洞察、usability test、user interview、market research、consumer insight
 - **严格规则**：只包含「研究用户/市场」的AI方法和工具。排除：产品设计工具（如Figma）、产品功能介绍、一般UX/UI设计技巧
 
-**客服AI**
+---
+### 🎧 客服AI
+
 - 来源：CX Today、Zendesk、Intercom
-- 标记：【客服AI】
 - 关键词：客服、customer service、contact center、坐席、Cresta、Decagon、客服机器人、AI客服、智能客服
 - **严格规则**：只包含AI客服机器人、智能坐席助手、虚拟客服助手。排除：一般CX管理、销售营销、社区讨论、人事任命
 
-**SaaS**
+---
+### 💼 SaaS
+
 - 来源：TechCrunch、VentureBeat、ProductHunt
-- 标记：【SaaS】
 - 关键词：SaaS、enterprise、platform、tool、API、automation、企业级、AI平台、B2B AI、software、AI software
 - **严格规则**：包含企业级AI软件、工具、平台的发布、更新、融资、商业模式。排除：纯消费者端产品
 
-**To C 大模型产品**
+---
+### 🤖 To C 大模型产品
+
 - 来源：TechCrunch、VentureBeat、ProductHunt、OpenAI Blog、Anthropic Blog
-- 标记：【To C 大模型产品】
 - 关键词：consumer、ChatGPT、Claude、Gemini、Copilot、consumer app、AI assistant、AI chat、personal AI
 - **严格规则**：包含消费者端AI产品、大模型应用、AI助手、个人AI工具。排除：企业级SaaS产品
 
-**其他**
-- 标记：【其他】
+---
+### 📰 其他
+
 - 关键词：模型发布、论文、行业政策、AI Native转型、AI组织演变、startup、融资、funding、观点、opinion
-- **严格规则**：只有当前5个板块都不符合时才放入「其他」。内容涉及前5个板块的，必须优先放入对应板块
+- **严格规则**：只有当前5个板块都不符合时才放入「其他」
 - 内容类型：不匹配前5类的模型发布、学术论文、行业政策、AI Native转型、AI组织演变、行业观点、创业公司融资
 - **排序规则**：AI Native转型和组织演变内容优先，其次按融资额排序
 
 **重要规则**：
-- **严格时间过滤**：所有新闻必须发布于 **{date_range}**，超出此时间范围的内容一律丢弃
+- **🔴 严格时间过滤（最高优先级）**：
+  - 所有新闻必须发布于 **{date_range}**，超出此时间范围的内容一律丢弃
+  - 如果标题或摘要中包含旧年份（如"2025"、"2024"），**必须排除**
+  - 年度报告、季度总结、回顾性文章，**一律排除**
 - **严禁重复链接**：每个URL只能出现在一个板块中
 - **严禁内容重复**：同一事件/产品/功能的多条新闻必须合并为一条，选择信息最完整的版本
   - ❌ 错误示例：
@@ -210,17 +227,36 @@ class Analyzer:
   3. 作为fallback，直接与LLM对话，通过websearch找到最近7天内该板块的重要新闻
 
 **通用规则**：
-- **所有英文标题必须翻译成中文**，格式：[中文标题](url)（English Title）
+- **所有英文标题必须翻译成中文**，格式：**[中文标题](url)** （English Title）
 - 语言简洁专业，适合飞书群快速阅读
-- 链接格式: [标题](url)
 - 突出技术创新和实际影响
 - **总量控制**：每个板块最多展示5条新闻，优先选择最重要、最有影响力的内容
 - **摘要精简**：每条新闻摘要控制在30字以内，突出核心信息
-- **严禁使用表格格式**：所有板块必须使用列表格式，每个板块的格式应为：
-  1. [中文标题](url)（English Title）
-     摘要内容...
-  2. [中文标题](url)（English Title）
-     摘要内容..."""
+
+**输出格式要求（必须严格遵守）**：
+
+每个板块使用以下格式：
+
+---
+
+### 🏨 OTA/旅游
+
+**1.** [中文标题](url) （English Title）
+> 摘要内容...
+
+**2.** [中文标题](url) （English Title）
+> 摘要内容...
+
+---
+
+### 🔍 Market Research
+
+**1.** [中文标题](url) （English Title）
+> 摘要内容...
+
+---
+
+以此类推。每个板块之间用 `---` 分隔。"""
 
         report_text = None
         llm_used = None
