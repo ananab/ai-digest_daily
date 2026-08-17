@@ -193,6 +193,12 @@ class Processor:
             else:
                 industry = self._detect_industry(item)
 
+            # Startup 融资/产品新闻：根据行业属性分到对应板块
+            # 如果检测到明确行业就分到该板块，否则保持原分类
+            if item.category == 'startups' and industry == '其他':
+                # 用更宽松的关键词再尝试一次行业匹配
+                industry = self._detect_industry_loose(item)
+
             categorized[industry].append(item)
 
         return categorized
@@ -246,6 +252,46 @@ class Processor:
                 unique.append(item)
 
         return unique
+
+    def _detect_industry_loose(self, item: CollectedItem) -> str:
+        """宽松的行业检测（用于 startup 新闻的二次匹配）"""
+        text = f"{item.title} {item.summary}".lower()
+
+        # Startup 相关的宽松关键词映射
+        loose_keywords = {
+            'OTA/旅游': [
+                'travel', 'hotel', 'flight', 'booking', 'tourism', 'hospitality',
+                'trip', 'vacation', 'airline', 'resort', 'accommodation',
+                '旅游', '酒店', '机票', '出行', '住宿', '度假',
+            ],
+            'Market Research': [
+                'user research', 'ux research', 'usability', 'user testing',
+                'user interview', 'survey', 'feedback', 'insight', 'analytics',
+                '用户研究', '用研', '调研', '问卷', '访谈', '洞察',
+            ],
+            '客服AI': [
+                'customer service', 'customer support', 'helpdesk', 'contact center',
+                'call center', 'support agent', 'service bot', 'help desk',
+                '客服', '客户支持', '服务中心', '呼叫中心',
+            ],
+            'SaaS': [
+                'saas', 'b2b', 'enterprise', 'workflow', 'productivity',
+                'automation', 'integration', 'api', 'platform', 'tool',
+                '企业级', '工作流', '自动化', '集成',
+            ],
+            'To C 大模型产品': [
+                'chatgpt', 'claude', 'gemini', 'copilot', 'ai assistant',
+                'ai chat', 'personal ai', 'consumer', 'mobile app',
+                'ai应用', 'ai助手', '个人ai',
+            ],
+        }
+
+        for industry, keywords in loose_keywords.items():
+            for kw in keywords:
+                if kw in text:
+                    return industry
+
+        return '其他'
 
     def _categorize(self, items: List[CollectedItem]) -> dict[str, List[CollectedItem]]:
         """按类别分组"""

@@ -128,6 +128,11 @@ class Analyzer:
    - AI Native组织的形态演变（如全员AI、扁平化AI团队、Agent-First组织等）
    - 这些内容根据其行业属性放到对应板块
 
+4. **Startup新闻覆盖**：
+   - 每个板块尽量包含至少一条该领域的创业公司新闻（融资、新产品发布、技术突破等）
+   - Startup新闻按行业属性归入对应板块（如：旅游AI创业→OTA/旅游，用研AI创业→Market Research，客服AI创业→客服AI等）
+   - 如果素材中有startup相关内容，优先选择展示
+
 请基于以下本周动态，生成一份适合飞书群播报的中文周报。
 
 本周动态：
@@ -159,7 +164,7 @@ class Analyzer:
 - 来源：Skift、PhocusWire、环球旅讯
 - 关键词：酒店、机票、预订、旅游、OTA、Booking、Expedia、Airbnb、携程、飞猪、travel AI
 - **严格规则**：只包含与AI直接相关的旅游行业新闻。排除纯旅游商业新闻
-- **优先包含**：OTA行业的AI Native转型案例、OTA CEO的AI相关发言、OTA创业公司融资
+- **优先包含**：OTA行业的AI Native转型案例、OTA CEO的AI相关发言、**OTA/旅游AI创业公司融资、新产品发布**
 
 ---
 ### 🔍 Market Research
@@ -168,6 +173,7 @@ class Analyzer:
 - 关键词：user research、UX research、usability test、user interview、social listening、consumer insight、market research、用户研究、用研、深访、访谈、用户洞察
 - **严格规则**：只包含「研究用户/市场」的AI方法和工具（访谈、问卷、可用性测试、用户洞察平台）
 - **排除**：产品设计工具（Figma）、产品功能介绍、一般UX/UI技巧、**学术论文**（即使标题含"research"）、**技术基础设施**（LLM路由、模型训练等）、**纯技术benchmark**
+- **优先包含**：**用研/市场研究AI创业公司融资、新产品发布、工具更新**
 
 ---
 ### 🎧 客服AI
@@ -175,6 +181,7 @@ class Analyzer:
 - 来源：CX Today、Zendesk、Intercom
 - 关键词：客服、customer service、contact center、坐席、Cresta、Decagon、客服机器人、AI客服、智能客服
 - **严格规则**：只包含AI客服机器人、智能坐席助手、虚拟客服助手。排除：一般CX管理、销售营销、社区讨论、人事任命
+- **优先包含**：**客服AI创业公司融资、新产品发布、技术突破**
 
 ---
 ### 💼 SaaS
@@ -182,6 +189,7 @@ class Analyzer:
 - 来源：TechCrunch、VentureBeat、ProductHunt
 - 关键词：SaaS、enterprise、platform、tool、API、automation、企业级、AI平台、B2B AI、software、AI software
 - **严格规则**：包含企业级AI软件、工具、平台的发布、更新、融资、商业模式。排除：纯消费者端产品
+- **优先包含**：**SaaS/企业级AI创业公司融资、新产品发布、技术突破**
 
 ---
 ### 🤖 To C 大模型产品
@@ -189,13 +197,14 @@ class Analyzer:
 - 来源：TechCrunch、VentureBeat、ProductHunt、OpenAI Blog、Anthropic Blog
 - 关键词：consumer、ChatGPT、Claude、Gemini、Copilot、consumer app、AI assistant、AI chat、personal AI
 - **严格规则**：包含消费者端AI产品、大模型应用、AI助手、个人AI工具。排除：企业级SaaS产品
+- **优先包含**：**To C AI产品创业公司融资、新产品发布、技术突破**
 
 ---
 ### 📰 其他
 
 - 关键词：模型发布、论文、行业政策、AI Native转型、AI组织演变、startup、融资、funding、观点、opinion
 - **严格规则**：只有当前5个板块都不符合时才放入「其他」
-- 内容类型：不匹配前5类的模型发布、学术论文、行业政策、AI Native转型、AI组织演变、行业观点、创业公司融资
+- 内容类型：不匹配前5类的模型发布、学术论文、行业政策、AI Native转型、AI组织演变、行业观点、**行业不明确的创业公司融资**
 - **排序规则**：AI Native转型和组织演变内容优先，其次按融资额排序
 
 **重要规则**：
@@ -585,7 +594,21 @@ class Analyzer:
         query = domain_queries.get(domain, f'{time_range} {domain} 最新动态')
 
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
+            async with httpx.AsyncClient(timeout=180) as client:
+                messages = [
+                    {"role": "system", "content": f"你是一个科技新闻编辑。今天是{today.strftime('%Y-%m-%d')}。请搜索并整理{time_range}期间的相关新闻。每条新闻需包含标题、来源和URL链接。"},
+                    {"role": "user", "content": f"请搜索以下内容，返回{time_range}期间的新闻（3-5条），格式：标题 - 来源 - URL\n\n{query}"}
+                ]
+                tools = [
+                    {
+                        "type": "builtin_function",
+                        "function": {
+                            "name": "$web_search"
+                        }
+                    }
+                ]
+
+                # Round 1: trigger web search tool call
                 response = await client.post(
                     "https://api.moonshot.cn/v1/chat/completions",
                     headers={
@@ -595,23 +618,54 @@ class Analyzer:
                     json={
                         "model": config.kimi_model_report,
                         "max_tokens": 3000,
-                        "messages": [
-                            {"role": "system", "content": f"你是一个科技新闻编辑。今天是{today.strftime('%Y-%m-%d')}。请搜索并整理{time_range}期间的相关新闻。每条新闻需包含标题、来源和URL链接。"},
-                            {"role": "user", "content": f"请搜索以下内容，返回{time_range}期间的新闻（3-5条），格式：标题 - 来源 - URL\n\n{query}"}
-                        ],
-                        "tools": [
-                            {
-                                "type": "builtin_function",
-                                "function": {
-                                    "name": "$web_search"
-                                }
-                            }
-                        ]
+                        "messages": messages,
+                        "tools": tools,
                     }
                 )
 
                 data = response.json()
-                content = data['choices'][0]['message']['content'].strip()
+                choice = data['choices'][0]
+                message = choice['message']
+
+                # kimi-k2.6 returns finish_reason=tool_calls with empty content
+                # Need round-trip: send search results back, get final content
+                if choice.get('finish_reason') == 'tool_calls' and message.get('tool_calls'):
+                    tool_calls = message['tool_calls']
+                    # Append assistant message with tool_calls
+                    messages.append(message)
+
+                    # For builtin $web_search, send back the search result from arguments
+                    for tc in tool_calls:
+                        tool_msg = {
+                            "role": "tool",
+                            "name": tc['function']['name'],
+                            "content": tc['function']['arguments'],
+                        }
+                        if 'id' in tc:
+                            tool_msg['tool_call_id'] = tc['id']
+                        messages.append(tool_msg)
+
+                    # Round 2: get final summarized response
+                    # max_tokens must be high — kimi-k2.6 spends heavily on reasoning tokens
+                    response2 = await client.post(
+                        "https://api.moonshot.cn/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {config.kimi_api_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": config.kimi_model_report,
+                            "max_tokens": 8000,
+                            "messages": messages,
+                        }
+                    )
+                    data2 = response2.json()
+                    choice2 = data2['choices'][0]
+                    msg2 = choice2['message']
+                    logger.info(f'{domain}: Kimi Round 2 finish_reason={choice2.get("finish_reason")}, content_len={len(msg2.get("content", ""))}, tool_calls={bool(msg2.get("tool_calls"))}')
+                    content = msg2['content'].strip()
+                else:
+                    content = message['content'].strip()
 
                 refusal_phrases = ['无法提供', '无法访问', '无法确认', '很抱歉', '抱歉，我', '无法验证', '无法搜索']
                 has_refusal = any(phrase in content for phrase in refusal_phrases)
@@ -626,7 +680,9 @@ class Analyzer:
                     return ''
 
         except Exception as e:
-            logger.error(f'{domain}: Kimi 联网搜索失败: {e}')
+            logger.error(f'{domain}: Kimi 联网搜索失败: {type(e).__name__}: {e}')
+            import traceback
+            logger.error(traceback.format_exc())
             return ''
 
     def _fallback_report(self, data: dict) -> str:

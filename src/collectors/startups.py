@@ -98,6 +98,7 @@ class StartupsCollector(BaseCollector):
         # 广泛的AI创业公司来源
         feeds = [
             ('https://techcrunch.com/category/artificial-intelligence/feed/', 'TechCrunch AI', False),
+            ('https://techcrunch.com/category/startups/feed/', 'TechCrunch Startups', False),
             ('https://www.newcomer.co/feed', 'Newcomer', False),
             ('https://www.producthunt.com/feed', 'ProductHunt', True),  # 需要关键词过滤
             ('https://venturebeat.com/category/ai/feed/', 'VentureBeat AI', False),
@@ -107,6 +108,7 @@ class StartupsCollector(BaseCollector):
         # HTML fallback URLs for each source
         html_sources = {
             'TechCrunch AI': 'https://techcrunch.com/category/artificial-intelligence/',
+            'TechCrunch Startups': 'https://techcrunch.com/category/startups/',
             'VentureBeat AI': 'https://venturebeat.com/category/ai/',
             'Y Combinator': 'https://www.ycombinator.com/blog',
         }
